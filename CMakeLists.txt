@@ -7,6 +7,8 @@ add_compile_options(-O3)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(SkipKdTests)
+include(KdTestVersion)
 include(AddKdTest)
 include(AddKdTestOmp)
 
@@ -16,5 +18,6 @@ option(BUILD_TESTS "Build tests" OFF)
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
+    finalize_skip_kd_tests()
 endif()
 
