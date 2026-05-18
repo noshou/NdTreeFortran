@@ -1,0 +1,3 @@
+add_kdtest(Testv060_DBSCAN_AFTER_ADD)
+add_kdtest(Testv060_DBSCAN_AFTER_RMV)
+add_kdtest(Testv060_DBSCAN_REBUILD)

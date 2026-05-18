@@ -17,7 +17,7 @@ program Testv050_RMV_NODES_RAD_IDS_MATCH
             type(KdNodePtr), allocatable :: res(:)
             real(real64)                 :: query(2, 1) = reshape([1.0_real64, 1.0_real64], [2, 1])
             real(real64)                 :: radii(1)    = [1.1_real64]
-            integer(int64)               :: centerIds(1)
+            type(NodeId)                 :: centerIds(1)
             integer                      :: numRmv
             integer(int64)               :: pop
 

@@ -81,7 +81,7 @@ submodule(KdTreeFortran) KdTreeModders
             pop = numNodeToAdd + this%pop
             tid = this%getTreeId()
             allocate(nodePoolTmp(pop))
-            nodePoolTmp(1:this%pop) = this%nodePool(1:this%pop)
+            if (this%pop .gt. 0_int64) nodePoolTmp(1:this%pop) = this%nodePool(1:this%pop)
             do i = this%pop + 1, pop
                 allocate(nodePoolTmp(i)%coords(dim))
                 !$OMP ATOMIC CAPTURE
@@ -98,7 +98,7 @@ submodule(KdTreeFortran) KdTreeModders
                     nodePoolTmp(i)%data = dataList(i-this%pop)
                 end if
             end do
-            deallocate(this%nodePool)
+            if (associated(this%nodePool)) deallocate(this%nodePool)
             this%nodePool => nodePoolTmp
             this%pop = pop
             !$OMP END CRITICAL (tree_mutate)

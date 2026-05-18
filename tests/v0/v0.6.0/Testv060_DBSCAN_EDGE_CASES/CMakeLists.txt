@@ -1,0 +1,8 @@
+add_kdtest(Testv060_DBSCAN_MINPTS_ZERO)
+add_kdtest(Testv060_DBSCAN_MINPTS_GT_POP)
+add_kdtest(Testv060_DBSCAN_ZERO_RADIUS)
+add_kdtest(Testv060_DBSCAN_3D)
+add_kdtest(Testv060_DBSCAN_MINPTS_ONE)
+add_kdtest(Testv060_DBSCAN_BORDER_POINTS)
+add_kdtest(Testv060_DBSCAN_CHAIN)
+add_kdtest(Testv060_DBSCAN_MINPTS_ONE_ISOLATED)

@@ -8,6 +8,7 @@ add_library(kdtreefortran
 	kdtree/KdTreeUtils.f90
 	kdtree/search_modules/KdTreeRnn.f90
 	kdtree/search_modules/KdTreeLinScan.f90
+	kdtree/search_modules/KdTreeDBSCAN.f90
 	kdtree/KdTreeModders.f90
 )
 

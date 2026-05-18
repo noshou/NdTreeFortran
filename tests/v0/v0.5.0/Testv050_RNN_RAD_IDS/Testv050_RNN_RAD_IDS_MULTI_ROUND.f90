@@ -22,7 +22,7 @@ program Testv050_RNN_RAD_IDS_MULTI_ROUND
             real(real64)                    :: q(2, 1)    = reshape([1.5_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)       = [100.0_real64]
             type(KdNodePtr), allocatable    :: pA(:), pB(:), pC(:), pD(:)
-            integer(int64)                  :: idA, idB, idC, idD
+            type(NodeId)                    :: idA, idB, idC, idD
             type(KdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 

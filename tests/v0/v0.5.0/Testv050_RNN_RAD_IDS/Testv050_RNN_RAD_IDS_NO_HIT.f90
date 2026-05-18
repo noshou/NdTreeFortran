@@ -5,23 +5,24 @@ program Testv050_RNN_RAD_IDS_NO_HIT
     call rnnRadIdsNoHit()
     contains
         !> Two independent no-hit paths:
-        !! a) radius captures nodes but none have the requested id
+        !! a) radius captures nodes but none have the requested id (node_id=0 never exists)
         !! b) id exists but is outside the search radius
         subroutine rnnRadIdsNoHit()
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             type(KdNodePtr), allocatable    :: farNode(:)
-            integer(int64)                  :: wrongId(1), farId(1)
-            real(real64)                    :: q(2, 1)  = reshape([0.0_real64, 0.0_real64], [2, 1])
-            real(real64)                    :: r_big(1) = [10.0_real64]
+            type(NodeId)                    :: wrongId(1), farId(1)
+            real(real64)                    :: q(2, 1)   = reshape([0.0_real64, 0.0_real64], [2, 1])
+            real(real64)                    :: r_big(1)  = [10.0_real64]
             real(real64)                    :: r_tiny(1) = [0.01_real64]
             type(KdNodeBucket), allocatable :: res(:)
 
             call t%build(coords)
 
-            ! a) radius captures all 3 nodes, but id=0 doesn't exist
-            wrongId(1) = 0_int64
+            ! a) node_id=0 is never assigned; radius captures all 3 nodes but id won't match
+            wrongId(1)%node_id  = 0_int64
+            wrongId(1)%pool_idx = 0_int64
             res = t%rNN_RadIds(q, r_big, wrongId)
             if (size(res(1)%nodes) .ne. 0) then
                 write(*, '(A,I0)') '--- RNN_RAD_IDS_NO_HIT (bad id): expected 0, got: ', &

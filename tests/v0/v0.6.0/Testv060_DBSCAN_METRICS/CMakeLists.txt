@@ -1,0 +1,2 @@
+add_kdtest(Testv060_DBSCAN_MANHATTAN)
+add_kdtest(Testv060_DBSCAN_CHEBYSHEV)

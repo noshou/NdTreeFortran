@@ -11,13 +11,15 @@ program Testv050_RMV_NODES_RAD_IDS_NO_FILTER
             real(real64)   :: coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 5.0_real64, 5.0_real64], [2, 4])
-            real(real64)   :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
-            real(real64)   :: radii(1)    = [1.5_real64]
-            integer(int64) :: wrongIds(1) = [9999_int64]
-            integer        :: numRmv
+            real(real64) :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
+            real(real64) :: radii(1)    = [1.5_real64]
+            type(NodeId) :: wrongIds(1)
+            integer      :: numRmv
             integer(int64) :: pop
 
             call t%build(coords)
+            wrongIds(1)%node_id  = 9999_int64
+            wrongIds(1)%pool_idx = 0_int64
             numRmv = t%rmvNodes(coordsList=query, radii=radii, ids=wrongIds)
             pop    = t%getPop()
 

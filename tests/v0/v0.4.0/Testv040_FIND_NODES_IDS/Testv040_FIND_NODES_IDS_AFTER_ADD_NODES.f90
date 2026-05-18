@@ -5,33 +5,43 @@ program Testv040_FIND_NODES_IDS_AFTER_ADD_NODES
     call findNodesIdsAfterAdd()
     contains
         !> rNN_Ids must find a node inserted via addNodes when given its id.
-        !! A 1-node tree assigns nodeId=1; addNodes adds nodeId=2.
-        !! Querying at the added coord with id=2 must return 1 node.
-        !! Querying at the same coord with id=1 (wrong node) must return 0 nodes.
+        !! Build a 1-node tree at (0,0); addNodes inserts (5,5).
+        !! Query at (5,5) with the added node's id -> 1 result.
+        !! Query at (5,5) with the original node's id -> 0 results.
         subroutine findNodesIdsAfterAdd()
             type(KdTree) :: t
             type(KdNodeBucket), allocatable :: res(:)
+            type(KdNodePtr),    allocatable :: pool(:)
             real(real64) :: init_coord(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64) :: new_coord(2, 1)  = reshape([5.0_real64, 5.0_real64], [2, 1])
-            integer(int64) :: id_new(1) = [2_int64]
-            integer(int64) :: id_wrong(1) = [1_int64]
+            type(NodeId)             :: id_new(1), id_orig(1)
+            real(real64), allocatable :: tmp_coords(:)
+            integer                  :: i
 
             call t%build(init_coord)
             call t%addNodes(new_coord)
 
-            ! correct id for the added node (currNodeId: 0->1 at build, 1->2 at addNodes)
+            pool = t%getAllNodes()
+            do i = 1, size(pool)
+                tmp_coords = pool(i)%p%getCoords()
+                if (tmp_coords(1) .gt. 1.0_real64) then
+                    id_new(1)  = pool(i)%p%getNodeId()
+                else
+                    id_orig(1) = pool(i)%p%getNodeId()
+                end if
+            end do
+
             res = t%rNN_Ids(new_coord, id_new, epsilon=0.5_real64)
             if (size(res(1)%nodes) .ne. 1) then
                 write(*, '(A)')    '--- Testv040_FIND_NODES_IDS_AFTER_ADD_NODES ---'
-                write(*, '(A,I0)') 'expected 1 node for correct id=2, got: ', size(res(1)%nodes)
+                write(*, '(A,I0)') 'expected 1 node for correct id, got: ', size(res(1)%nodes)
                 stop 1
             end if
 
-            ! wrong id: coords match but id=1 belongs to the original node at (0,0), not (5,5)
-            res = t%rNN_Ids(new_coord, id_wrong, epsilon=0.5_real64)
+            res = t%rNN_Ids(new_coord, id_orig, epsilon=0.5_real64)
             if (size(res(1)%nodes) .ne. 0) then
                 write(*, '(A)')    '--- Testv040_FIND_NODES_IDS_AFTER_ADD_NODES ---'
-                write(*, '(A,I0)') 'expected 0 nodes for wrong id=1 at added coord, got: ', &
+                write(*, '(A,I0)') 'expected 0 nodes for wrong id at added coord, got: ', &
                     size(res(1)%nodes)
                 stop 1
             end if

@@ -105,6 +105,7 @@ module KdTreeFortran
             procedure     :: rNN_Node
             procedure     :: rNN_Rad
             procedure     :: rNN_RadIds
+            procedure     :: DBSCAN
             procedure     :: rmvNodes
             procedure     :: setRebuildRatio
             final         :: finalizer
@@ -826,8 +827,7 @@ module KdTreeFortran
         !! @param[in] bufferSize  initial rNN result buffer size; default DEFAULT_BUFFER_SIZE
         !!
         !! @return res  array of KdNodeBucket; res(1:n-1) contains buckets for each cluster,
-        !!                       res(n) contains "noise". If tree is empty, then res(1) will be 
-        !!                       empty and res(2) will also be empty.
+        !!                       res(n) contains "noise". If tree is empty, then res will be empty.
         module function DBSCAN(this, minPts, radius, metric, bufferSize) result(res)
             class(KdTree),      intent(in)           :: this
             integer,            intent(in)           :: minPts
@@ -837,7 +837,7 @@ module KdTreeFortran
             type(KdNodeBucket), allocatable          :: res(:)
         end function DBSCAN
 
-        !======================================================================================!
+        !=========================================================================================!
     
     end interface
 

@@ -1,0 +1,7 @@
+add_subdirectory(Testv060_DBSCAN_ASSERTIONS)
+add_subdirectory(Testv060_DBSCAN_BASIC)
+add_subdirectory(Testv060_DBSCAN_EDGE_CASES)
+add_subdirectory(Testv060_DBSCAN_METRICS)
+add_subdirectory(Testv060_DBSCAN_LIFECYCLE)
+add_subdirectory(Testv060_DBSCAN_STRESS)
+add_subdirectory(Testv060_MULTITHREAD_DBSCAN)

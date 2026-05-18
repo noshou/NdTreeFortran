@@ -13,7 +13,7 @@ program Testv050_MULTITHREAD_SEARCH_LIN_SCAN
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 5])
             type(KdNodePtr), allocatable :: pool(:)
-            integer(int64)               :: targets(3)
+            type(NodeId)                 :: targets(3)
             integer                      :: errors
 
             call t%build(coords)

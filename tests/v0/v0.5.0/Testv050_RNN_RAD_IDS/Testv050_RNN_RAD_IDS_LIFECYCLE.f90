@@ -16,7 +16,7 @@ program Testv050_RNN_RAD_IDS_LIFECYCLE
             real(real64)                    :: q(2, 1) = reshape([2.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)    = [10.0_real64]
             type(KdNodePtr), allocatable    :: originNode(:)
-            integer(int64)                  :: originId(1)
+            type(NodeId)                    :: originId(1)
             type(KdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 
@@ -27,14 +27,12 @@ program Testv050_RNN_RAD_IDS_LIFECYCLE
             end if
             originId(1) = originNode(1)%p%getNodeId()
 
-            ! Before removal: origin is in radius and in ids → 1 result
             res = t%rNN_RadIds(q, r, originId)
             if (size(res(1)%nodes) .ne. 1) then
                 write(*, '(A,I0)') '--- RNN_RAD_IDS_LIFECYCLE (before rmv): expected 1, got: ', &
                     size(res(1)%nodes); stop 1
             end if
 
-            ! Add 2 more nodes; origin still present → still 1 result for that id
             call t%addNodes(extra)
             res = t%rNN_RadIds(q, r, originId)
             if (size(res(1)%nodes) .ne. 1) then
@@ -42,13 +40,11 @@ program Testv050_RNN_RAD_IDS_LIFECYCLE
                     size(res(1)%nodes); stop 1
             end if
 
-            ! Remove origin
             numRmv = t%rmvNodes(coordsList=rmvQ)
             if (numRmv .ne. 1) then
                 write(*, '(A,I0)') '--- RNN_RAD_IDS_LIFECYCLE: rmvNodes returned ', numRmv; stop 1
             end if
 
-            ! Origin gone → id no longer in pool → 0 results
             res = t%rNN_RadIds(q, r, originId)
             if (size(res(1)%nodes) .ne. 0) then
                 write(*, '(A,I0)') '--- RNN_RAD_IDS_LIFECYCLE (after rmv): expected 0, got: ', &

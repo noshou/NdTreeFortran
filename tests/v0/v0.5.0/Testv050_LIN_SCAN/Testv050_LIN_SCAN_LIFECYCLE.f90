@@ -14,16 +14,14 @@ program Testv050_LIN_SCAN_LIFECYCLE
                 [5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 2])
             real(real64)                 :: rmvQuery(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             type(KdNodePtr), allocatable :: allNodes(:), res(:)
-            integer(int64)               :: removedId(1), newIds(2)
+            type(NodeId)                 :: removedId(1), newIds(2)
             integer                      :: numRmv, i
 
             call t%build(coords)
 
-            ! Record the id of the node at the origin (will be removed)
             allNodes      = t%getAllNodes()
             removedId(1)  = allNodes(1)%p%getNodeId()
 
-            ! linScan must find it now
             res = t%linScan(removedId)
             if (size(res) .ne. 1) then
                 write(*, '(A)')    '--- Testv050_LIN_SCAN_LIFECYCLE (before rmv) ---'
@@ -31,7 +29,6 @@ program Testv050_LIN_SCAN_LIFECYCLE
                 stop 1
             end if
 
-            ! Remove that node
             numRmv = t%rmvNodes(coordsList=rmvQuery)
             if (numRmv .ne. 1) then
                 write(*, '(A)')    '--- Testv050_LIN_SCAN_LIFECYCLE (rmvNodes) ---'
@@ -39,7 +36,6 @@ program Testv050_LIN_SCAN_LIFECYCLE
                 stop 1
             end if
 
-            ! linScan must no longer find the removed id
             res = t%linScan(removedId)
             if (size(res) .ne. 0) then
                 write(*, '(A)')    '--- Testv050_LIN_SCAN_LIFECYCLE (after rmv) ---'
@@ -47,14 +43,12 @@ program Testv050_LIN_SCAN_LIFECYCLE
                 stop 1
             end if
 
-            ! Add 2 new nodes; capture their ids
             call t%addNodes(extra)
             allNodes = t%getAllNodes()
-            do i = 1, size(allNodes)
-                if (i .le. 2) newIds(i) = allNodes(size(allNodes) - 2 + i)%p%getNodeId()
+            do i = 1, 2
+                newIds(i) = allNodes(size(allNodes) - 2 + i)%p%getNodeId()
             end do
 
-            ! linScan must find the 2 new nodes
             res = t%linScan(newIds)
             if (size(res) .ne. 2) then
                 write(*, '(A)')    '--- Testv050_LIN_SCAN_LIFECYCLE (after add) ---'

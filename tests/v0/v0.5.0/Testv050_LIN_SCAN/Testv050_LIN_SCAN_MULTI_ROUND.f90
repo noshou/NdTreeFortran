@@ -22,7 +22,8 @@ program Testv050_LIN_SCAN_MULTI_ROUND
             real(real64)                 :: rmvA(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                 :: rmvB(2, 1) = reshape([1.0_real64, 0.0_real64], [2, 1])
             type(KdNodePtr), allocatable :: pool(:), res(:)
-            integer(int64)               :: idA, idB, idC, idD, idE
+            type(NodeId)                 :: idA, idB, idC, idD, idE, tmpId
+            logical                      :: cFound, dFound
             integer                      :: numRmv, i
 
             ! --- Round 1 ---
@@ -38,15 +39,18 @@ program Testv050_LIN_SCAN_MULTI_ROUND
 
             ! --- Round 2: add C,D; remove A ---
             call t%addNodes(coordsCD)
-            pool = t%getAllNodes()
-            ! C and D are the 2 nodes with ids beyond idA,idB
-            idC = 0_int64; idD = 0_int64
+            pool   = t%getAllNodes()
+            cFound = .false.; dFound = .false.
             do i = 1, size(pool)
-                if (pool(i)%p%getNodeId() .ne. idA .and. pool(i)%p%getNodeId() .ne. idB) then
-                    if (idC == 0_int64) then
-                        idC = pool(i)%p%getNodeId()
+                tmpId = pool(i)%p%getNodeId()
+                if (tmpId%node_id .ne. idA%node_id .and. &
+                    tmpId%node_id .ne. idB%node_id) then
+                    if (.not. cFound) then
+                        idC    = tmpId
+                        cFound = .true.
                     else
-                        idD = pool(i)%p%getNodeId()
+                        idD    = tmpId
+                        dFound = .true.
                     end if
                 end if
             end do
@@ -66,11 +70,12 @@ program Testv050_LIN_SCAN_MULTI_ROUND
             ! --- Round 3: add E; remove B ---
             call t%addNodes(coordsE)
             pool = t%getAllNodes()
-            idE  = 0_int64
             do i = 1, size(pool)
-                if (pool(i)%p%getNodeId() .ne. idB .and. pool(i)%p%getNodeId() .ne. idC .and. &
-                    pool(i)%p%getNodeId() .ne. idD) then
-                    idE = pool(i)%p%getNodeId()
+                tmpId = pool(i)%p%getNodeId()
+                if (tmpId%node_id .ne. idB%node_id .and. &
+                    tmpId%node_id .ne. idC%node_id .and. &
+                    tmpId%node_id .ne. idD%node_id) then
+                    idE = tmpId
                 end if
             end do
 

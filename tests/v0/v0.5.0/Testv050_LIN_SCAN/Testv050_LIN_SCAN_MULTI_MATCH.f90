@@ -12,7 +12,7 @@ program Testv050_LIN_SCAN_MULTI_MATCH
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 5])
             type(KdNodePtr), allocatable :: allNodes(:), res(:)
-            integer(int64)               :: targets(3)
+            type(NodeId)                 :: targets(3), tmpId
             integer                      :: i
             logical                      :: found
 
@@ -31,12 +31,13 @@ program Testv050_LIN_SCAN_MULTI_MATCH
             end if
 
             do i = 1, size(res)
-                found = (res(i)%p%getNodeId() == targets(1) .or. &
-                         res(i)%p%getNodeId() == targets(2) .or. &
-                         res(i)%p%getNodeId() == targets(3))
+                tmpId = res(i)%p%getNodeId()
+                found = (tmpId%node_id == targets(1)%node_id .or. &
+                         tmpId%node_id == targets(2)%node_id .or. &
+                         tmpId%node_id == targets(3)%node_id)
                 if (.not. found) then
                     write(*, '(A)')    '--- Testv050_LIN_SCAN_MULTI_MATCH ---'
-                    write(*, '(A,I0)') 'result has unexpected id: ', res(i)%p%getNodeId()
+                    write(*, '(A,I0)') 'result has unexpected id: ', tmpId%node_id
                     stop 1
                 end if
             end do
