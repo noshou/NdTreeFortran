@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_IDS_NO_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rnnRadIdsNoHit()
@@ -11,12 +11,12 @@ program Testv050_RNN_RAD_IDS_NO_HIT
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
-            type(KdNodePtr), allocatable    :: farNode(:)
+            type(NdNodePtr), allocatable    :: farNode(:)
             type(NodeId)                    :: wrongId(1), farId(1)
             real(real64)                    :: q(2, 1)   = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r_big(1)  = [10.0_real64]
             real(real64)                    :: r_tiny(1) = [0.01_real64]
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
 
             call t%build(coords)
 

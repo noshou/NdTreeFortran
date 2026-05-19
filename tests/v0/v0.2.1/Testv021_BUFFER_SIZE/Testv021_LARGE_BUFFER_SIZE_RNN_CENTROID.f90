@@ -1,5 +1,5 @@
 program Testv021_LARGE_BUFFER_SIZE_RNN_CENTROID
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -12,7 +12,7 @@ program Testv021_LARGE_BUFFER_SIZE_RNN_CENTROID
             integer, parameter         :: N = 1000, NDIM = 3, NITER = 1000
             type(KdTree)                 :: t
             real(real64)               :: coords(NDIM, N), centroid(NDIM)
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64)               :: d, r
             integer                    :: i, j, expected
 

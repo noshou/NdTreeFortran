@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_COORDS_CORRECT_SHAPE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call getAllCoordsCorrectShape()

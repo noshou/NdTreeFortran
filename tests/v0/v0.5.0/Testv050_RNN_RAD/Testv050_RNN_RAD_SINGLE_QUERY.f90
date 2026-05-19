@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_SINGLE_QUERY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnRadSingleQuery()
@@ -13,7 +13,7 @@ program Testv050_RNN_RAD_SINGLE_QUERY
                  2.0_real64, 1.0_real64, 1.0_real64, 2.0_real64], [2, 5])
             real(real64)                    :: q(2, 1) = reshape([1.0_real64, 1.0_real64], [2, 1])
             real(real64)                    :: r(1)    = [1.1_real64]
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Rad(q, r)

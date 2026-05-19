@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_IDS_EMPTY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesIdsEmpty()

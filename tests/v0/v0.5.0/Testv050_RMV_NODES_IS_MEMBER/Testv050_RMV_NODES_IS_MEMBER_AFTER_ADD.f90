@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_IS_MEMBER_AFTER_ADD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesIsMemberAfterAdd()
@@ -12,8 +12,8 @@ program Testv050_RMV_NODES_IS_MEMBER_AFTER_ADD
                 [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 3])
             real(real64)                 :: rmvQuery(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                 :: newCoords(2, 1) = reshape([9.0_real64, 9.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: res(:)
-            type(KdNode),    pointer     :: n
+            type(NdNodePtr), allocatable :: res(:)
+            type(NdNode),    pointer     :: n
             integer                      :: numRmv
 
             call t%build(coords)

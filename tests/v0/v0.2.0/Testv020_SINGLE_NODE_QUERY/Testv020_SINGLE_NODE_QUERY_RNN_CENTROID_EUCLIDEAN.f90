@@ -3,7 +3,7 @@
 !! Expected: 2 nodes -> (1,0) and (0.6,0.8) both lie on the unit Euclidean sphere.
 program Testv020_SINGLE_NODE_QUERY_RNN_CENTROID_EUCLIDEAN
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -18,7 +18,7 @@ program Testv020_SINGLE_NODE_QUERY_RNN_CENTROID_EUCLIDEAN
                 0.9_real64, 0.9_real64,  &
                 1.9_real64, 0.9_real64], [2, 4])
             real(real64)               :: centroid(2) = [0.0_real64, 0.0_real64]
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Centroid(centroid, 1.0_real64, metric='euclidean')

@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_IDS_MULTI_ROUND
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rnnRadIdsMultiRound()
@@ -21,9 +21,9 @@ program Testv050_RNN_RAD_IDS_MULTI_ROUND
             real(real64)                    :: rmvB(2, 1) = reshape([1.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: q(2, 1)    = reshape([1.5_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)       = [100.0_real64]
-            type(KdNodePtr), allocatable    :: pA(:), pB(:), pC(:), pD(:)
+            type(NdNodePtr), allocatable    :: pA(:), pB(:), pC(:), pD(:)
             type(NodeId)                    :: idA, idB, idC, idD
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 
             call t%build(coordsAB)

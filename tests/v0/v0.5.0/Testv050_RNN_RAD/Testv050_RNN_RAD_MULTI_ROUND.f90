@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_MULTI_ROUND
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnRadMultiRound()
@@ -23,7 +23,7 @@ program Testv050_RNN_RAD_MULTI_ROUND
                 [1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64], [2, 2])
             real(real64)                    :: q(2, 1) = reshape([2.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)    = [100.0_real64]
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 
             ! Round 1

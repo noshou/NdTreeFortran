@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_REBUILD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanRebuild()
@@ -14,7 +14,7 @@ program Testv060_DBSCAN_REBUILD
             real(real64)                    :: coords2(2, 4) = reshape( &
                 [5.0_real64, 5.0_real64, 5.1_real64, 5.0_real64, &
                  5.0_real64, 5.1_real64, 5.1_real64, 5.1_real64], [2, 4])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: numRmv, i
 

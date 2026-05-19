@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_NUM_MODS_ZERO_AFTER_BUILD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call numModsZeroAfterBuild()

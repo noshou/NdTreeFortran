@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_COORDS_SINGLE_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesCoordssSingleHit()

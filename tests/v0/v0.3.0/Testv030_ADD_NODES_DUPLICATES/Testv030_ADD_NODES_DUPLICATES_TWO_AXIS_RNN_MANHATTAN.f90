@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_DUPLICATES_TWO_AXIS_RNN_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call duplicatesTwoAxisRnnManhattan()
@@ -11,7 +11,7 @@ program Testv030_ADD_NODES_DUPLICATES_TWO_AXIS_RNN_MANHATTAN
             real(real64)               :: dup_coords(2, 5) = reshape( &
                 [5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
                 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64], [2, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(dup_coords)

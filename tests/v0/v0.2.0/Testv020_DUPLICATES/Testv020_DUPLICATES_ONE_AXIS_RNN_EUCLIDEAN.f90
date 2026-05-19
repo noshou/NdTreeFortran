@@ -1,5 +1,5 @@
 program Testv020_DUPLICATES_ONE_AXIS_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -13,7 +13,7 @@ program Testv020_DUPLICATES_ONE_AXIS_RNN_EUCLIDEAN
                 [5.0_real64, 5.0_real64, 5.0_real64, &
                  5.0_real64, 5.0_real64, 5.0_real64, &
                  5.0_real64, 5.0_real64, 5.0_real64], [1, 9])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Centroid([5.0_real64], 0.01_real64)

@@ -10,7 +10,7 @@
 #                Used for tests that exercise error guards (error stop paths).
 #
 # Behaviour:
-#   - Builds ${name} from ${name}.f90 and links it against kdtreefortran.
+#   - Builds ${name} from ${name}.f90 and links it against ndtreefortran.
 #   - Registers the test name in the KD_ALL_TESTS global property so that
 #     finalize_skip_kd_tests() can validate SKIP_TESTS at configure time.
 #   - Applies version labels (e.g. "v0" and "v0.2.1") derived from the test name
@@ -28,7 +28,7 @@ function(add_kdtest name)
         return()
     endif()
     add_executable(${name} ${name}.f90)
-    target_link_libraries(${name} PRIVATE kdtreefortran)
+    target_link_libraries(${name} PRIVATE ndtreefortran)
     add_test(NAME ${name} COMMAND ${name})
     _kd_apply_version_labels(${name})
     if(ARG_WILL_FAIL)

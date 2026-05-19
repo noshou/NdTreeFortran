@@ -1,5 +1,5 @@
 program Testv020_DUPLICATES_TWO_AXIS_RNN_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -15,7 +15,7 @@ program Testv020_DUPLICATES_TWO_AXIS_RNN_MANHATTAN
                  5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
                  5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
                  5.0_real64, 5.0_real64], [2, 9])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Centroid([5.0_real64, 5.0_real64], 0.01_real64, metric='manhattan')

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_TREE_STATE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call findNodesCoordsTreeState()
@@ -9,7 +9,7 @@ program Testv040_FIND_NODES_COORDS_TREE_STATE
         !! The found node's coords and splitAxis must be accessible and valid.
         subroutine findNodesCoordsTreeState()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64), allocatable :: found_coords(:)
             logical :: isInit
             integer(int64) :: dim_before, pop_before, mods_before
@@ -48,7 +48,7 @@ program Testv040_FIND_NODES_COORDS_TREE_STATE
                 stop 1
             end if
             found_coords = res(1)%nodes(1)%p%getCoords()
-            split_axis   = res(1)%nodes(1)%p%getSplitAxis()
+            split_axis   = t%getSplitAxis(res(1)%nodes(1)%p)
             if (size(found_coords) .ne. 2) then
                 write(*, '(A)')    '--- Testv040_FIND_NODES_COORDS_TREE_STATE ---'
                 write(*, '(A,I0)') 'expected coord size 2, got: ', size(found_coords)

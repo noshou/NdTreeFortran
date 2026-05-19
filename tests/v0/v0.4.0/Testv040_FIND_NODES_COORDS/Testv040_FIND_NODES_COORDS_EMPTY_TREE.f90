@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_EMPTY_TREE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call findNodesCoordsEmptyTree()
@@ -8,7 +8,7 @@ program Testv040_FIND_NODES_COORDS_EMPTY_TREE
         !! Tree state (pop=0, initState=true) must be unchanged after the call.
         subroutine findNodesCoordsEmptyTree()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             logical :: isInit
             integer(int64) :: pop
             real(real64) :: empty_coords(2, 0)

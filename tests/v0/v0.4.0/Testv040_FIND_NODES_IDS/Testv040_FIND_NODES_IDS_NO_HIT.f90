@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_IDS_NO_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesIdsNoHit()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_IDS_NO_HIT
         !> Query with id=0 must return an empty bucket; no node ever has nodeId=0.
         subroutine findNodesIdsNoHit()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64)   :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64)   :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])

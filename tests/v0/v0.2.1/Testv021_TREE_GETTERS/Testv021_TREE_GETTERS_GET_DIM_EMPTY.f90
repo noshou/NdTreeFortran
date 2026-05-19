@@ -1,5 +1,5 @@
 program Testv021_TREE_GETTERS_GET_DIM_EMPTY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call treeGettersGetDimEmpty()

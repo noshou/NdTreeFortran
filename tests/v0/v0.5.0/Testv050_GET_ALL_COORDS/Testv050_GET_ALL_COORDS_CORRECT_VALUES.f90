@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_COORDS_CORRECT_VALUES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call getAllCoordsCorrectValues()
@@ -14,7 +14,7 @@ program Testv050_GET_ALL_COORDS_CORRECT_VALUES
                 [0.0_real64, 0.0_real64, 3.0_real64, 0.0_real64, &
                  0.0_real64, 3.0_real64, 3.0_real64, 3.0_real64], [2, 4])
             real(real64), allocatable    :: got(:,:)
-            type(KdNodeBucket), allocatable :: buckets(:)
+            type(NdNodeBucket), allocatable :: buckets(:)
             integer                      :: i
 
             call t%build(coords)

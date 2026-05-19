@@ -1,5 +1,5 @@
 program Testv021_IS_MEMBER_FALSE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call isMemberFalse()
@@ -13,9 +13,9 @@ program Testv021_IS_MEMBER_FALSE
                 [1.0_real64, 2.0_real64,  &
                 3.0_real64, 4.0_real64,  &
                 5.0_real64, 6.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:) 
+            type(NdNodePtr), allocatable :: res(:) 
             real(real64) :: centroid(2)  = [0.0_real64, 0.0_real64]
-            type(KdNode), pointer :: n
+            type(NdNode), pointer :: n
 
             call t1%build(coords)
             res = t1%rNN_Centroid(centroid, 100.0_real64)

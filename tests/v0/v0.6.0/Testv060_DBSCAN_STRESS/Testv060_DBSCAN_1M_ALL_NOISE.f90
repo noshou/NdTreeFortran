@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_1M_ALL_NOISE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscan1MAllNoise()
@@ -11,7 +11,7 @@ program Testv060_DBSCAN_1M_ALL_NOISE
             type(KdTree)                    :: t
             integer,            parameter   :: n = 1000000
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: i, noiseSize
 

@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_3D
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscan3D()
@@ -14,7 +14,7 @@ program Testv060_DBSCAN_3D
                  10.0_real64, 10.0_real64, 10.0_real64, &
                  10.1_real64, 10.0_real64, 10.0_real64, &
                  10.0_real64, 10.1_real64, 10.0_real64], [3, 6])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

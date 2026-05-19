@@ -3,7 +3,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_NON_MEMBER_RNN_CENTROID
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -14,7 +14,7 @@ program Testv020_NON_MEMBER_RNN_CENTROID
             type(KdTree)                 :: t
             real(real64)               :: coords(2, 2) = reshape([1.0_real64, 2.0_real64, -2.0_real64, -32.3_real64], [2, 2])
             real(real64)               :: centroid3d(3) = [0.0_real64, 0.0_real64, 0.0_real64]
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
 

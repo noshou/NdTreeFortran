@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_IDEMPOTENT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanIdempotent()
@@ -14,7 +14,7 @@ program Testv060_DBSCAN_IDEMPOTENT
                  10.0_real64, 0.0_real64, 10.1_real64, 0.0_real64, 10.0_real64, 0.1_real64, &
                  0.0_real64, 10.0_real64, 0.1_real64, 10.0_real64, 0.0_real64, 10.1_real64, &
                  50.0_real64, 50.0_real64, 100.0_real64, 100.0_real64], [2, 11])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total1, total2
             integer                         :: nc1, ns1, nc2, ns2, i
 

@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_INCREMENTAL_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call incrementalRnnEuclidean()
@@ -12,7 +12,7 @@ program Testv030_ADD_NODES_INCREMENTAL_RNN_EUCLIDEAN
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, &
                 0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 4])
             real(real64)               :: step(2, 1)
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer                    :: k
 
             call t%build(init_coords)

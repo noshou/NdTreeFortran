@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_MULTI_ADD_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call multiAddRnnChebyshev()
@@ -15,7 +15,7 @@ program Testv030_ADD_NODES_MULTI_ADD_RNN_CHEBYSHEV
                 [4.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 6.0_real64, 0.0_real64], [2, 3])
             real(real64)               :: batch3(2, 3) = reshape( &
                 [7.0_real64, 0.0_real64, 8.0_real64, 0.0_real64, 9.0_real64, 0.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(batch1)

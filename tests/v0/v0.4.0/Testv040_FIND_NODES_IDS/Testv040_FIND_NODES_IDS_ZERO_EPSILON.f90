@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_IDS_ZERO_EPSILON
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesIdsZeroEpsilon()
@@ -8,7 +8,7 @@ program Testv040_FIND_NODES_IDS_ZERO_EPSILON
         !! Neighbour at distance 1.0 must not appear even if it happened to have id=1.
         subroutine findNodesIdsZeroEpsilon()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64)   :: coords(2, 1) = reshape([3.0_real64, 4.0_real64], [2, 1])
             type(NodeId)   :: ids(1)
 

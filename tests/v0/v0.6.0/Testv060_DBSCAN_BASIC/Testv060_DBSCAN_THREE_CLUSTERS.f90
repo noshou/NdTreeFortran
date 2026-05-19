@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_THREE_CLUSTERS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanThreeClusters()
@@ -11,7 +11,7 @@ program Testv060_DBSCAN_THREE_CLUSTERS
                 [0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, 0.0_real64, 0.1_real64, &
                  10.0_real64, 0.0_real64, 10.1_real64, 0.0_real64, 10.0_real64, 0.1_real64, &
                  0.0_real64, 10.0_real64, 0.1_real64, 10.0_real64, 0.0_real64, 10.1_real64], [2, 9])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

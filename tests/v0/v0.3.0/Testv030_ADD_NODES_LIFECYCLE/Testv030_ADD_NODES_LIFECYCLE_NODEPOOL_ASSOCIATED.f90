@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_LIFECYCLE_NODEPOOL_ASSOCIATED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesLifecycleNodepoolAssociated()

@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_AFTER_RMV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanAfterRmv()
@@ -12,7 +12,7 @@ program Testv060_DBSCAN_AFTER_RMV
                  10.0_real64, 10.0_real64, 10.1_real64, 10.0_real64, 10.0_real64, 10.1_real64], [2, 6])
             real(real64)                    :: toRemove(2, 3) = reshape( &
                 [10.0_real64, 10.0_real64, 10.1_real64, 10.0_real64, 10.0_real64, 10.1_real64], [2, 3])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: numRmv, i
 

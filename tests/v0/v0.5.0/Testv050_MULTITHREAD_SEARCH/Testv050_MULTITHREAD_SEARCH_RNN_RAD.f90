@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_SEARCH_RNN_RAD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     use omp_lib
     implicit none
@@ -15,7 +15,7 @@ program Testv050_MULTITHREAD_SEARCH_RNN_RAD
             ! q at (0,0), r=1.1 → captures (0,0), (1,0), (0,1) = 3 nodes
             real(real64)                    :: q(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)    = [1.1_real64]
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: errors
 
             call t%build(coords)

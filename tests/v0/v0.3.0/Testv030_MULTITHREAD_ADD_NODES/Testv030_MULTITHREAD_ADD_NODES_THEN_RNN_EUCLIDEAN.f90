@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_ADD_NODES_THEN_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesThenRnnEuclidean()
@@ -23,7 +23,7 @@ program Testv030_MULTITHREAD_ADD_NODES_THEN_RNN_EUCLIDEAN
             !$OMP PARALLEL DO NUM_THREADS(4) SCHEDULE(STATIC, 1) SHARED(t, failed)
             do i = 1, 4
                 block
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     
                     ! centroid (1.5,1.5) r=1.5 euclidean: finds pts within 1.5 of center
                     res = t%rNN_Centroid([1.5_real64, 1.5_real64], 1.5_real64, metric='euclidean')

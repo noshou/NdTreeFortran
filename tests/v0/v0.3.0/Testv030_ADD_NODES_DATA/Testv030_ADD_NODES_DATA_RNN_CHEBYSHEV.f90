@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_DATA_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesDataRnnChebyshev()
@@ -14,7 +14,7 @@ program Testv030_ADD_NODES_DATA_RNN_CHEBYSHEV
             real(real64)               :: new_coords(2, 2) = reshape( &
                 [1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 2])
             character(len=1)           :: new_data(2) = ['D', 'E']
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer                    :: i
             logical                    :: foundD = .false., foundE = .false.
 

@@ -1,5 +1,5 @@
 program Testv060_MULTITHREAD_DBSCAN_CONCURRENT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     use omp_lib
     implicit none
@@ -12,7 +12,7 @@ program Testv060_MULTITHREAD_DBSCAN_CONCURRENT
             real(real64)                    :: coords(2, 6) = reshape( &
                 [0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, 0.0_real64, 0.1_real64, &
                  10.0_real64, 10.0_real64, 10.1_real64, 10.0_real64, 10.0_real64, 10.1_real64], [2, 6])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: errors, nClusters, noiseSize
 
             call t%build(coords)

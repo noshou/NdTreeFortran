@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_V010_BUILD_ALL_CASES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call v010BuildAllCases()

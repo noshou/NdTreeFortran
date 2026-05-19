@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_CUSTOM_BUFFER
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanCustomBuffer()
@@ -12,7 +12,7 @@ program Testv060_DBSCAN_CUSTOM_BUFFER
             type(KdTree)                    :: t
             integer,            parameter   :: side = 20, n = side * side
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: resDefault(:), resSmall(:)
+            type(NdNodeBucket), allocatable :: resDefault(:), resSmall(:)
             integer(int64)                  :: totalDef, totalSmall, pop
             integer                         :: i, j, idx
 

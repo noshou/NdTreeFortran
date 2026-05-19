@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_SINGLE_NODE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanSingleNode()
@@ -8,7 +8,7 @@ program Testv060_DBSCAN_SINGLE_NODE
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 1) = reshape( &
                 [0.0_real64, 0.0_real64], [2, 1])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
 
             call t%build(coords)
             res = t%DBSCAN(minPts=2, radius=1.0_real64)

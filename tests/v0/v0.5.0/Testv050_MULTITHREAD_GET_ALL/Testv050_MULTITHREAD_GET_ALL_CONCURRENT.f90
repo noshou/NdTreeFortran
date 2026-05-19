@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_GET_ALL_CONCURRENT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     use omp_lib
     implicit none
@@ -14,7 +14,7 @@ program Testv050_MULTITHREAD_GET_ALL_CONCURRENT
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64, 2.0_real64, 1.0_real64], [2, 6])
             integer                      :: tid, errors
-            type(KdNodePtr), allocatable :: nodes(:)
+            type(NdNodePtr), allocatable :: nodes(:)
             real(real64),    allocatable :: gotCoords(:,:)
             integer                      :: i
 

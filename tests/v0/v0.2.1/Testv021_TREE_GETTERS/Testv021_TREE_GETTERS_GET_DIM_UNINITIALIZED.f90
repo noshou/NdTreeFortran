@@ -1,5 +1,5 @@
 program Testv021_TREE_GETTERS_GET_DIM_UNINITIALIZED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: int64
     implicit none
     call getDimUninitialized()

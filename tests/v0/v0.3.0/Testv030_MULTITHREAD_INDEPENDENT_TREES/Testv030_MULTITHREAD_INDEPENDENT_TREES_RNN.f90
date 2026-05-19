@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_INDEPENDENT_TREES_RNN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call independentTreesRnn()
@@ -18,7 +18,7 @@ program Testv030_MULTITHREAD_INDEPENDENT_TREES_RNN
             do i = 1, 4
                 block
                     type(KdTree)                 :: t
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     call t%build(coords)
                     res = t%rNN_Centroid([5.0_real64, 5.0_real64], 1.0_real64)
                     if (size(res) .ne. 1) then

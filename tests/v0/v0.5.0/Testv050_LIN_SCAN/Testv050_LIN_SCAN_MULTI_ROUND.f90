@@ -1,5 +1,5 @@
 program Testv050_LIN_SCAN_MULTI_ROUND
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call linScanMultiRound()
@@ -21,7 +21,7 @@ program Testv050_LIN_SCAN_MULTI_ROUND
                 [9.0_real64, 9.0_real64], [2, 1])
             real(real64)                 :: rmvA(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                 :: rmvB(2, 1) = reshape([1.0_real64, 0.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: pool(:), res(:)
+            type(NdNodePtr), allocatable :: pool(:), res(:)
             type(NodeId)                 :: idA, idB, idC, idD, idE, tmpId
             logical                      :: cFound, dFound
             integer                      :: numRmv, i

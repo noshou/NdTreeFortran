@@ -1,5 +1,5 @@
 program Testv021_DEFAULT_BUFFER_SIZE_RNN_CENTROID
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -16,7 +16,7 @@ program Testv021_DEFAULT_BUFFER_SIZE_RNN_CENTROID
                  1.0_real64, 5.0_real64, -93131913.0_real64,       &
                  0.0_real64, 0.0_real64,  0.0_real64], [3, 6])
             real(real64)               :: centroid(3) = [2.5_real64, 2.5_real64, 0.0_real64]
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer                    :: i
 
             call t%build(coords)

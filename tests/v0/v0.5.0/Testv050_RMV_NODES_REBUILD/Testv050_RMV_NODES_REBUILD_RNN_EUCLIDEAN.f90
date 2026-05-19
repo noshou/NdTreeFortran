@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_REBUILD_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesRebuildRnnEuclidean()
@@ -13,7 +13,7 @@ program Testv050_RMV_NODES_REBUILD_RNN_EUCLIDEAN
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64, 2.0_real64, 1.0_real64, &
                  0.0_real64, 2.0_real64, 1.0_real64, 2.0_real64, 2.0_real64, 2.0_real64], [2, 9])
             real(real64)                 :: rmvQuery(2, 1) = reshape([1.0_real64, 1.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer                      :: numRmv
 
             call t%build(coords)

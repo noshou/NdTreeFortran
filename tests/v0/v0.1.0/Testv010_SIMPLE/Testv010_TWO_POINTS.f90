@@ -1,5 +1,5 @@
 program Testv010_TWO_POINTS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call twoPoints()

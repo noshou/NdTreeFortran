@@ -1,5 +1,5 @@
 program Testv020_COLLINEAR_ONE_AXIS_II_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -17,7 +17,7 @@ program Testv020_COLLINEAR_ONE_AXIS_II_RNN_CHEBYSHEV
                 87.0_real64, 4.0_real64,  93291.0_real64,   &
                 -98.0_real64, 4.0_real64, -93131913.0_real64,&
                 121.0_real64, 4.0_real64,  0.0_real64], [3, 6])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Centroid([13.0_real64, 4.0_real64, 0.0_real64], 12.5_real64, metric='chebyshev')

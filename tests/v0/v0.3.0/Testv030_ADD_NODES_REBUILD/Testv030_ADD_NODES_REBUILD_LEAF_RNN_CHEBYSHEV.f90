@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_REBUILD_LEAF_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rebuildLeafRnnChebyshev()
@@ -13,7 +13,7 @@ program Testv030_ADD_NODES_REBUILD_LEAF_RNN_CHEBYSHEV
                 0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64, &
                 0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64], [2, 8])
             real(real64)               :: new_coords(2, 1) = reshape([50.0_real64, 50.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer(int64)             :: numMods
 
             call t%build(init_coords)

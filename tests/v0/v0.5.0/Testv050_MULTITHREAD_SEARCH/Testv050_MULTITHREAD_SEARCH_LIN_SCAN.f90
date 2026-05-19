@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_SEARCH_LIN_SCAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     use omp_lib
     implicit none
@@ -12,7 +12,7 @@ program Testv050_MULTITHREAD_SEARCH_LIN_SCAN
             real(real64)                 :: coords(2, 5) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 5])
-            type(KdNodePtr), allocatable :: pool(:)
+            type(NdNodePtr), allocatable :: pool(:)
             type(NodeId)                 :: targets(3)
             integer                      :: errors
 

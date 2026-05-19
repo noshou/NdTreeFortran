@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_RNN_CENTROID_NEGATIVE_RADIUS
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -15,7 +15,7 @@ program Testv020_RNN_CENTROID_NEGATIVE_RADIUS
                 [1.0_real64, 1.0_real64,  &
                  2.0_real64, 1.0_real64,  &
                  3.0_real64, 1.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
 

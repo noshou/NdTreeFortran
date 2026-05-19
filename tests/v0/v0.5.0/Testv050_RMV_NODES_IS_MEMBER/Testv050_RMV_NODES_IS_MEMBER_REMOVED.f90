@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_IS_MEMBER_REMOVED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesIsMemberRemoved()
@@ -11,8 +11,8 @@ program Testv050_RMV_NODES_IS_MEMBER_REMOVED
             real(real64)                 :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64)                 :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: res(:)
-            type(KdNode),    pointer     :: n
+            type(NdNodePtr), allocatable :: res(:)
+            type(NdNode),    pointer     :: n
             integer                      :: numRmv
 
             call t%build(coords)

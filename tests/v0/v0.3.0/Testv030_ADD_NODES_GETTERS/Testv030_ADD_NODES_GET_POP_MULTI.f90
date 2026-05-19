@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_GET_POP_MULTI
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call addNodesGetPopMulti()

@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_EMPTY_DATA_LIST
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesEmptyDataList()

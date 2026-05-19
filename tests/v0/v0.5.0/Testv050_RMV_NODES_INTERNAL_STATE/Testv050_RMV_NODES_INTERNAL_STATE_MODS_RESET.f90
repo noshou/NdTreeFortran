@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_INTERNAL_STATE_MODS_RESET
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesInternalStateModsReset()

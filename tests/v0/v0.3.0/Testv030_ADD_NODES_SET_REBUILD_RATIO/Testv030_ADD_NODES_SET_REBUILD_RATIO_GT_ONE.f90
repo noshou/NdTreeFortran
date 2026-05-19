@@ -1,7 +1,7 @@
 !> Expected-fail: setRebuildRatio(2.0) must error stop (ratio must be < 1).
 !! Registered with WILL_FAIL in CTest.
 program Testv030_ADD_NODES_SET_REBUILD_RATIO_GT_ONE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call setRebuildRatioGtOne()

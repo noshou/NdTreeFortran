@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_ZERO_ADD_STATE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call zeroAddState()

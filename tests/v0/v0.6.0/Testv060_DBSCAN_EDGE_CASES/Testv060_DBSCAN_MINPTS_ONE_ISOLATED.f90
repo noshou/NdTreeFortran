@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_MINPTS_ONE_ISOLATED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanMinPtsOneIsolated()
@@ -12,7 +12,7 @@ program Testv060_DBSCAN_MINPTS_ONE_ISOLATED
             real(real64)                    :: coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 100.0_real64, 0.0_real64, &
                  0.0_real64, 100.0_real64, 100.0_real64, 100.0_real64], [2, 4])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize, total, i
 
             call t%build(coords)

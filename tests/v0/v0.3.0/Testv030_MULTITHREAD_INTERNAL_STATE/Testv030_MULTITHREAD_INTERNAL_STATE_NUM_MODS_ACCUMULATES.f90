@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_INTERNAL_STATE_NUM_MODS_ACCUMULATES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call mtNumModsAccumulates()

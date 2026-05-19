@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_IDS_LIFECYCLE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rnnRadIdsLifecycle()
@@ -15,9 +15,9 @@ program Testv050_RNN_RAD_IDS_LIFECYCLE
             real(real64)                    :: rmvQ(2, 1)   = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: q(2, 1) = reshape([2.0_real64, 0.0_real64], [2, 1])
             real(real64)                    :: r(1)    = [10.0_real64]
-            type(KdNodePtr), allocatable    :: originNode(:)
+            type(NdNodePtr), allocatable    :: originNode(:)
             type(NodeId)                    :: originId(1)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 
             call t%build(coords)

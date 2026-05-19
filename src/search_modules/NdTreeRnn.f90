@@ -1,246 +1,10 @@
-submodule(KdTreeFortran) KdTreeRnn
+submodule(NdTreeFortran) NdTreeRnn
     implicit none
     contains
-
-        module procedure rNN
-            integer(int64), allocatable  :: stack(:), stmp(:)
-            integer(int64)               :: stackTop, stackSize, node
-            real(kind=real64)            :: delta
-            type(KdNodePtr), allocatable :: tmp(:)
-            integer(int64)               :: axis
-            integer                      :: i
-            type(KdNode), pointer        :: copy
-            logical                      :: withinRadius
-
-            if (currIdx .eq. 0_int64) return
-
-            stackSize = 64_int64
-            allocate(stack(stackSize))
-            stackTop  = 1_int64
-            stack(1)  = currIdx
-
-            do while (stackTop > 0_int64)
-                node     = stack(stackTop)
-                stackTop = stackTop - 1_int64
-
-                select case (metric)
-                    case ('euclidean')
-                        withinRadius = target%euclideanDist(nodePool(node)) .le. radius
-                    case ('manhattan')
-                        withinRadius = target%manhattanDist(nodePool(node)) .le. radius
-                    case ('chebyshev')
-                        withinRadius = target%chebyshevDist(nodePool(node)) .le. radius
-                    case default
-                        error stop "rNN: unknown metric"
-                end select
-
-                if (withinRadius) then
-                    if (size(res) .eq. arrSize) then
-                        allocate(tmp(2*size(res)))
-                        do i = 1, arrSize
-                            tmp(i)%p => res(i)%p
-                            res(i)%p => null()
-                        end do
-                        call move_alloc(from=tmp, to=res)
-                    end if
-                    arrSize = arrSize + 1
-                    allocate(copy, source=nodePool(node))
-                    res(arrSize)%p => copy
-                end if
-
-                axis  = nodePool(node)%splitAxis
-                delta = target%coords(axis) - nodePool(node)%coords(axis)
-
-                ! grow stack if needed before pushing up to 2 children
-                if (stackTop + 2 > stackSize) then
-                    stackSize = stackSize * 2_int64
-                    allocate(stmp(stackSize))
-                    stmp(1:stackTop) = stack(1:stackTop)
-                    call move_alloc(from=stmp, to=stack)
-                end if
-
-                if (delta < 0.0_real64) then
-                    if (nodePool(node)%lch .ne. 0_int64) then
-                        stackTop         = stackTop + 1_int64
-                        stack(stackTop)  = nodePool(node)%lch
-                    end if
-                    if (-delta .le. radius .and. nodePool(node)%rch .ne. 0_int64) then
-                        stackTop         = stackTop + 1_int64
-                        stack(stackTop)  = nodePool(node)%rch
-                    end if
-                else
-                    if (nodePool(node)%rch .ne. 0_int64) then
-                        stackTop         = stackTop + 1_int64
-                        stack(stackTop)  = nodePool(node)%rch
-                    end if
-                    if (delta .le. radius .and. nodePool(node)%lch .ne. 0_int64) then
-                        stackTop         = stackTop + 1_int64
-                        stack(stackTop)  = nodePool(node)%lch
-                    end if
-                end if
-            end do
-
-        end procedure rNN
-
-        module procedure rNN_Node
-
-            integer                    :: arrSize, is, i, j
-            character(len=9)           :: m
-            type(KdNodePtr), allocatable :: tmp(:)
-
-            if (this%rootIdx .eq. 0_int64) then
-                error stop "rNN_Node: tree is empty (call build first?)"
-            else if (.not. associated(target%p)) then
-                error stop "rNN_Node: target is null"
-            else if (radius .lt. 0.0_real64) then
-                error stop "rNN_Node: negative radius"
-            else if (.not. this%isMember(target%p)) then
-                error stop "rNN_Node: target is not a member of tree"
-            end if
-
-            if(.not. present(bufferSize)) then
-                is = DEFAULT_BUFFER_SIZE
-            else
-                if (bufferSize .le. 0) then
-                    error stop "rNN_Node: invalid bufferSize"
-                else
-                    is = bufferSize
-                end if
-            end if
-
-            if (.not. present(metric)) then
-                m = DEFAULT_METRIC
-            else
-                select case (metric)
-                case ('euclidean')
-                    m = 'euclidean'
-                case ('manhattan')
-                    m = 'manhattan'
-                case ('chebyshev')
-                    m = 'chebyshev'
-                case default
-                    error stop "rNN_Node: unknown metric"
-                end select
-            end if
-
-            arrSize = 0
-            allocate(res(is))
-
-            call rNN(target%p, this%rootIdx, this%nodePool, radius, res, arrSize, m)
-
-            ! trim to actual result count
-            if (arrSize .eq. 0) then
-                deallocate(res)
-                allocate(res(0))
-            else
-                allocate(tmp(arrSize))
-                do i = 1, arrSize
-                    tmp(i)%p => res(i)%p
-                    res(i)%p => null()
-                end do
-                call move_alloc(from=tmp, to=res)
-            end if
-
-            ! remove target node from list of found nodes
-            if (present(excludeTarget) .and. excludeTarget) then
-                do i = 1, arrSize
-                    if (res(i)%p%nodeId%node_id .eq. target%p%nodeId%node_id) then
-                        call res(i)%destroy()
-                        do j = i, arrSize - 1
-                            res(j)%p   => res(j+1)%p
-                            res(j+1)%p => null()
-                        end do
-                        arrSize = arrSize - 1
-                        exit
-                    end if
-                end do
-                if (arrSize .eq. 0) then
-                    deallocate(res)
-                    allocate(res(0))
-                else
-                    allocate(tmp(arrSize))
-                    do i = 1, arrSize
-                        tmp(i)%p => res(i)%p ; res(i)%p => null()
-                    end do
-                    call move_alloc(from=tmp, to=res)
-                end if
-            end if
-
-        end procedure rNN_Node
-
-        module procedure rNN_Centroid
-
-            integer                      :: arrSize, is, i
-            character(len=9)             :: m
-            type(KdNode)                 :: dummyNode
-            type(KdNodePtr), allocatable :: tmp(:)
-
-            if (this%rootIdx .eq. 0_int64) then
-                error stop "rNN_Centroid: tree is empty (call build first?)"
-            else if (size(centroid) .ne. this%dim) then
-                error stop "rNN_Centroid: dimension of centroid must match dimension of tree"
-            else if (radius .lt. 0.0_real64) then
-                error stop "rNN_Centroid: negative radius"
-            end if
-
-            if(.not. present(bufferSize)) then
-                is = DEFAULT_BUFFER_SIZE
-            else
-                if (bufferSize .le. 0) then
-                    error stop "rNN_Centroid: invalid bufferSize"
-                else
-                    is = bufferSize
-                end if
-            end if
-
-            if (.not. present(metric)) then
-                m = DEFAULT_METRIC
-            else
-                select case (metric)
-                case ('euclidean')
-                    m = 'euclidean'
-                case ('manhattan')
-                    m = 'manhattan'
-                case ('chebyshev')
-                    m = 'chebyshev'
-                case default
-                    error stop "rNN_Centroid: unknown metric"
-                end select
-            end if
-
-            arrSize = 0
-            allocate(res(is))
-
-            ! wrap centroid in a node so rNN can call distance methods uniformly
-            allocate(dummyNode%coords(this%dim), source=centroid)
-
-            call rNN(           &
-                dummyNode,      &
-                this%rootIdx,   &
-                this%nodePool,  &
-                radius,         &
-                res,            &
-                arrSize,        &
-                m               &
-            )
-
-            ! trim to actual result count
-            if (arrSize .eq. 0) then
-                deallocate(res)
-                allocate(res(0))
-            else
-                allocate(tmp(arrSize))
-                do i = 1, arrSize
-                    tmp(i)%p => res(i)%p
-                    res(i)%p => null()
-                end do
-                call move_alloc(from=tmp, to=res)
-            end if
-
-        end procedure rNN_Centroid
-
+        
+        !> Asserts that a user input for RNN is correct; error stops if it fails
         subroutine assert_rNN(t, coords, epsilon, metric, name, bufferSize, ids)
-            type(KdTree),      intent(in)           :: t
+            class(NdTree),     intent(in)           :: t
             real(real64),      intent(in)           :: coords(:,:)
             character(len=*),  intent(in)           :: name
             character(len=*),  intent(in), optional :: metric
@@ -286,18 +50,175 @@ submodule(KdTreeFortran) KdTreeRnn
             end if
         end subroutine assert_rNN
 
+        module procedure rNN_Node
+            
+            integer                      :: arrSize, is, i, j
+            character(len=9)             :: m
+            type(NdNodePtr), allocatable :: tmp(:)
+
+            if (this%rootIdx .eq. 0_int64) then
+                error stop "rNN_Node: tree is empty (call build first?)"
+            else if (.not. associated(target%p)) then
+                error stop "rNN_Node: target is null"
+            else if (radius .lt. 0.0_real64) then
+                error stop "rNN_Node: negative radius"
+            else if (.not. this%isMember(target%p)) then
+                error stop "rNN_Node: target is not a member of tree"
+            end if
+
+            if(.not. present(bufferSize)) then
+                is = DEFAULT_BUFFER_SIZE
+            else
+                if (bufferSize .le. 0) then
+                    error stop "rNN_Node: invalid bufferSize"
+                else
+                    is = bufferSize
+                end if
+            end if
+
+            if (.not. present(metric)) then
+                m = DEFAULT_METRIC
+            else
+                select case (metric)
+                case ('euclidean')
+                    m = 'euclidean'
+                case ('manhattan')
+                    m = 'manhattan'
+                case ('chebyshev')
+                    m = 'chebyshev'
+                case default
+                    error stop "rNN_Node: unknown metric"
+                end select
+            end if
+
+            arrSize = 0
+            allocate(res(is))
+
+            call this%rNN(target%p, this%rootIdx, this%nodePool, radius, res, arrSize, m)
+
+            ! trim to actual result count
+            if (arrSize .eq. 0) then
+                deallocate(res)
+                allocate(res(0))
+            else
+                allocate(tmp(arrSize))
+                do i = 1, arrSize
+                    tmp(i)%p => res(i)%p
+                    res(i)%p => null()
+                end do
+                call move_alloc(from=tmp, to=res)
+            end if
+
+            ! remove target node from list of found nodes
+            if (present(excludeTarget) .and. excludeTarget) then
+                do i = 1, arrSize
+                    if (res(i)%p%nodeId%node_id .eq. target%p%nodeId%node_id) then
+                        call res(i)%destroy()
+                        do j = i, arrSize - 1
+                            res(j)%p   => res(j+1)%p
+                            res(j+1)%p => null()
+                        end do
+                        arrSize = arrSize - 1
+                        exit
+                    end if
+                end do
+                if (arrSize .eq. 0) then
+                    deallocate(res)
+                    allocate(res(0))
+                else
+                    allocate(tmp(arrSize))
+                    do i = 1, arrSize
+                        tmp(i)%p => res(i)%p ; res(i)%p => null()
+                    end do
+                    call move_alloc(from=tmp, to=res)
+                end if
+            end if
+
+        end procedure rNN_Node
+
+        module procedure rNN_Centroid
+
+            integer                      :: arrSize, is, i
+            character(len=9)             :: m
+            type(NdNode)                 :: dummyNode
+            type(NdNodePtr), allocatable :: tmp(:)
+
+            if (this%rootIdx .eq. 0_int64) then
+                error stop "rNN_Centroid: tree is empty (call build first?)"
+            else if (size(centroid) .ne. this%dim) then
+                error stop "rNN_Centroid: dimension of centroid must match dimension of tree"
+            else if (radius .lt. 0.0_real64) then
+                error stop "rNN_Centroid: negative radius"
+            end if
+
+            if(.not. present(bufferSize)) then
+                is = DEFAULT_BUFFER_SIZE
+            else
+                if (bufferSize .le. 0) then
+                    error stop "rNN_Centroid: invalid bufferSize"
+                else
+                    is = bufferSize
+                end if
+            end if
+
+            if (.not. present(metric)) then
+                m = DEFAULT_METRIC
+            else
+                select case (metric)
+                case ('euclidean')
+                    m = 'euclidean'
+                case ('manhattan')
+                    m = 'manhattan'
+                case ('chebyshev')
+                    m = 'chebyshev'
+                case default
+                    error stop "rNN_Centroid: unknown metric"
+                end select
+            end if
+
+            arrSize = 0
+            allocate(res(is))
+
+            ! wrap centroid in a node so rNN can call distance methods uniformly
+            allocate(dummyNode%coords(this%dim), source=centroid)
+
+            call this%rNN(      &
+                dummyNode,      &
+                this%rootIdx,   &
+                this%nodePool,  &
+                radius,         &
+                res,            &
+                arrSize,        &
+                m               &
+            )
+
+            ! trim to actual result count
+            if (arrSize .eq. 0) then
+                deallocate(res)
+                allocate(res(0))
+            else
+                allocate(tmp(arrSize))
+                do i = 1, arrSize
+                    tmp(i)%p => res(i)%p
+                    res(i)%p => null()
+                end do
+                call move_alloc(from=tmp, to=res)
+            end if
+
+        end procedure rNN_Centroid
+
         module procedure rNN_Coords
             integer                      :: i, bs
             real(real64)                 :: e
-            type(KdNodePtr), allocatable :: nptrs(:)
+            type(NdNodePtr), allocatable :: nptrs(:)
 
-            call assert_rNN(   &
-                this,               &
-                coords,             &
-                epsilon,            &
-                metric,             &
+            call assert_rNN(  &
+                this,         &
+                coords,       &
+                epsilon,      &
+                metric,       &
                 'rNN_Coords', &
-                bufferSize          &
+                bufferSize    &
             )
 
             if (present(epsilon)) then
@@ -336,16 +257,16 @@ submodule(KdTreeFortran) KdTreeRnn
         module procedure rNN_Ids
             integer                      :: i, j, bs, currSize
             real(real64)                 :: e
-            type(KdNodePtr), allocatable :: nptrsTmp(:)
+            type(NdNodePtr), allocatable :: nptrsTmp(:)
 
-            call assert_rNN(   &
-                this,               &
-                coords,             &
-                epsilon,            &
-                metric,             &
+            call assert_rNN(  &
+                this,         &
+                coords,       &
+                epsilon,      &
+                metric,       &
                 'rNN_Ids',    &
-                bufferSize,         &
-                ids                 &
+                bufferSize,   &
+                ids           &
             )
 
             if (present(epsilon)) then
@@ -382,7 +303,7 @@ submodule(KdTreeFortran) KdTreeRnn
         module procedure rNN_Rad
             
             integer                      :: i, bs
-            type(KdNodePtr), allocatable :: nptrs(:)
+            type(NdNodePtr), allocatable :: nptrs(:)
 
             ! assertion checks
             call assert_rNN(this, coords=coords, metric=metric, name='rNN_Rad', bufferSize=bufferSize)
@@ -416,9 +337,9 @@ submodule(KdTreeFortran) KdTreeRnn
         end procedure rNN_Rad
 
         module procedure rNN_RadIds
-            integer                      :: i, j, k, nMatch
-            type(KdNodeBucket), allocatable :: resTmp(:)
-            type(KdNodePtr),    allocatable :: nptrTmp(:)
+            integer                         :: i, j, k, nMatch
+            type(NdNodeBucket), allocatable :: resTmp(:)
+            type(NdNodePtr),    allocatable :: nptrTmp(:)
             ! assertion checks
             call assert_rNN(          &
                 this,                 &
@@ -460,4 +381,4 @@ submodule(KdTreeFortran) KdTreeRnn
                 deallocate(nptrTmp)
             end do
         end procedure rNN_RadIds
-end submodule KdTreeRnn
+end submodule NdTreeRnn

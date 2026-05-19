@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_AFTER_ADD_NODES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call findNodesCoordsAfterAdd()
@@ -8,7 +8,7 @@ program Testv040_FIND_NODES_COORDS_AFTER_ADD_NODES
         !! Tree pop must grow by 1 after addNodes; findNodes must return the new node.
         subroutine findNodesCoordsAfterAdd()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64), allocatable :: found(:)
             integer(int64) :: pop_before, pop_after
             real(real64) :: init_coords(2, 3) = reshape( &

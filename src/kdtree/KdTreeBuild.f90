@@ -1,7 +1,7 @@
-submodule(KdTreeFortran) KdTreeBuild
+submodule(NdTreeFortran) KdTreeBuild
     implicit none 
     contains 
-        module procedure build
+        module procedure buildKDT
 
             integer(int64), allocatable :: indices(:)
             integer(int64)              :: i, id
@@ -50,7 +50,7 @@ submodule(KdTreeFortran) KdTreeBuild
             this%treeId = id
 
             ! build tree
-            call buildSubtree(this, this%rootIdx, 0_int64, indices, 1_int64, this%pop)
+            call this%buildSubtree(this%rootIdx, 0_int64, indices, 1_int64, this%pop)
 
             deallocate(indices)
             
@@ -59,9 +59,9 @@ submodule(KdTreeFortran) KdTreeBuild
             end if            
             this%initialized = .true.
 
-        end procedure build
+        end procedure buildKDT
 
-        module procedure buildSubtree
+        module procedure buildSubtreeKdt
 
             integer(int64) :: axis, median, middleBounds(2), targetIdx
 
@@ -69,7 +69,7 @@ submodule(KdTreeFortran) KdTreeBuild
             if (lowerIdx > upperIdx) then
                 rootIdx = 0_int64
             else
-                axis = saxs(depth, this%dim)
+                axis = this%saxs(depth, this%dim)
                 targetIdx = (lowerIdx + upperIdx) / 2_int64
                 median = quickSelect( &
                     this%nodePool,    &
@@ -81,13 +81,16 @@ submodule(KdTreeFortran) KdTreeBuild
                     targetIdx         &
                 )
                 rootIdx = indices(median)
-                this%nodePool(rootIdx)%splitAxis = axis
-                this%nodePool(rootIdx)%treeId = this%treeId
-                call buildSubtree(this, this%nodePool(rootIdx)%lch, depth+1_int64, indices, lowerIdx, median-1_int64)
-                call buildSubtree(this, this%nodePool(rootIdx)%rch, depth+1_int64, indices, median+1_int64, upperIdx)
+                allocate(this%nodePool(rootIdx)%nodeParams(1))
+                allocate(this%nodePool(rootIdx)%children(2))
+                this%nodePool(rootIdx)%nodeParams(1) = real(axis, real64)
+                this%nodePool(rootIdx)%children(:)   = 0_int64
+                this%nodePool(rootIdx)%treeId        = this%treeId
+                call this%buildSubtree(this%nodePool(rootIdx)%children(1), depth+1_int64, indices, lowerIdx, median-1_int64)
+                call this%buildSubtree(this%nodePool(rootIdx)%children(2), depth+1_int64, indices, median+1_int64, upperIdx)
             end if
 
-        end procedure buildSubtree
+        end procedure buildSubtreeKdt
 
         !> Rearranges indices so that indices(targetIdx) holds the
         !! median element along the given axis, with smaller values to its left and
@@ -112,7 +115,7 @@ submodule(KdTreeFortran) KdTreeBuild
             targetIdx                   &
             ) result(median)
             
-            type(KdNode), intent(in)          :: nodes(:)
+            type(NdNode), intent(in)          :: nodes(:)
             integer(int64), intent(inout)   :: indices(:)
             integer(int64), intent(in)      :: lowerIdx, upperIdx, axis, targetIdx
             integer(int64), intent(inout)   :: middleBounds(2)
@@ -183,7 +186,7 @@ submodule(KdTreeFortran) KdTreeBuild
             pivot                                   &
             )
 
-            type(KdNode), intent(in)         :: nodes(:)
+            type(NdNode), intent(in)         :: nodes(:)
             integer(int64), intent(inout)  :: indices(:), middleBounds(2)
             integer(int64), intent(in)     :: lowerIdx, upperIdx, axis
             integer(int64)                 :: i, tmp, lowerMiddleIdx, upperMiddleIdx

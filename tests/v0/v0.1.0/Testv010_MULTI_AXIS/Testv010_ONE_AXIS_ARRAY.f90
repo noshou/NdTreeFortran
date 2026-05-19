@@ -1,5 +1,5 @@
 program Testv010_ONE_AXIS_ARRAY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call oneAxisArray()

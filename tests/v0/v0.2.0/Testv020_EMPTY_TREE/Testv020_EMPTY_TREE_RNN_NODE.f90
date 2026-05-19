@@ -1,7 +1,7 @@
 !> Expected-fail: rNN_Node on an empty tree must error stop.
 !! Registered with WILL_FAIL in CTest.
 program Testv020_EMPTY_TREE_RNN_NODE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -14,7 +14,7 @@ program Testv020_EMPTY_TREE_RNN_NODE
             real(real64)               :: coords(2, 0)
             real(real64)               :: helperCoords(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)               :: r = 0.9
-            type(KdNodePtr), allocatable :: res(:), centroid_res(:)
+            type(NdNodePtr), allocatable :: res(:), centroid_res(:)
 
             call t%build(coords)
             call tHelper%build(helperCoords)

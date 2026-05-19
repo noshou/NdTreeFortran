@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_RAD_MULTIPLE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesRadMultiple()

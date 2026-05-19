@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_INTERNAL_STATE_INCREMENTAL
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call mtIncremental()
@@ -19,7 +19,7 @@ program Testv030_MULTITHREAD_INTERNAL_STATE_INCREMENTAL
                 block
                     type(KdTree)                 :: t
                     real(real64)               :: step(2, 1)
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     integer(int64)             :: numMods, pop, k
 
                     call t%build(init_coords)

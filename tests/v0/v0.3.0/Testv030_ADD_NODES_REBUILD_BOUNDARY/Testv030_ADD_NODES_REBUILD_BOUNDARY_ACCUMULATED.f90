@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_REBUILD_BOUNDARY_ACCUMULATED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rebuildBoundaryAccumulated()
@@ -19,7 +19,7 @@ program Testv030_ADD_NODES_REBUILD_BOUNDARY_ACCUMULATED
                 [40.0_real64, 0.0_real64, 50.0_real64, 0.0_real64], [2, 2])
             real(real64)               :: batch2(2, 1) = reshape([60.0_real64, 0.0_real64], [2, 1])
             real(real64)               :: batch3(2, 1) = reshape([70.0_real64, 0.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer(int64)             :: numMods, pop
 
             call t%build(init_coords)

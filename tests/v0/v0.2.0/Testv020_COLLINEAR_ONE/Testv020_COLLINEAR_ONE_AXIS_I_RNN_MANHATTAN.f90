@@ -1,5 +1,5 @@
 program Testv020_COLLINEAR_ONE_AXIS_I_RNN_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -17,7 +17,7 @@ program Testv020_COLLINEAR_ONE_AXIS_I_RNN_MANHATTAN
                 5.0_real64, 4.0_real64,  93291.0_real64,       &
                 5.0_real64, 5.0_real64, -93131913.0_real64,    &
                 5.0_real64, 6.0_real64,  0.0_real64], [3, 6])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
             res = t%rNN_Centroid([5.0_real64, 2.0_real64, 0.0_real64], 1.5_real64, metric='manhattan')

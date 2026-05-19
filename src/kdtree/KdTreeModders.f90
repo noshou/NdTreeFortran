@@ -1,47 +1,13 @@
-submodule(KdTreeFortran) KdTreeModders
+submodule(NdTreeFortran) KdTreeModders
     use iso_fortran_env, only: int64, real64
     implicit none
     contains
 
-        module procedure setRebuildRatio
-            if (ratio .le. 0.0_real64) then
-                error stop "setRebuildRatio: rebuildRatio must be greater than zero!"
-            else if (ratio .ge. 1.0_real64) then
-                error stop "setRebuildRatio: rebuildRatio must be less than 1!"
-            else
-                this%rebuildRatio = ratio
-            end if
-        end procedure setRebuildRatio
-
-        !> rebuilds a tree after node pool has been modified.
-        !!
-        !! must ensure that tree and node state
-        !! invariants are preserved BEFORE calling rebuild
-        subroutine rebuild(t)
-            type(KdTree), intent(inout) :: t
-            integer(int64), allocatable :: indices(:)
-            integer(int64)              :: i
-
-            ! sync pool_idx hints to current pool positions before rebuilding
-            do i = 1_int64, t%pop
-                t%nodePool(i)%nodeId%pool_idx = i
-            end do
-
-            allocate(indices(t%pop))
-            indices = [(i, i=1_int64, t%pop)]
-            t%rootIdx = 0_int64
-
-            call buildSubtree(t, t%rootIdx, 0_int64, indices, 1_int64, t%pop)
-
-            t%modifications = 0_int64
-
-        end subroutine rebuild
-
-        module procedure addNodes
+        module procedure addNodesKDT
 
             logical                 :: isInit, hasData, rootHasData, hasRoot
-            integer(int64)          :: dataListSize, i, dim, pop, numNodeToAdd, tid, currIdx
-            type(KdNode), pointer   :: nodePoolTmp(:)
+            integer(int64)          :: dataListSize, i, dim, pop, numNodeToAdd, tid, currIdx, currAxis
+            type(NdNode), pointer   :: nodePoolTmp(:)
 
             ! initialize state variables
             call this%associatedRoot(hasRoot)
@@ -91,11 +57,9 @@ submodule(KdTreeFortran) KdTreeModders
                 nodePoolTmp(i)%nodeId%pool_idx    = i
                 nodePoolTmp(i)%coords(:)          =  coordsList(:, i-this%pop)
                 nodePoolTmp(i)%hasData            =  hasData
-                nodePoolTmp(i)%lch                =  0_int64
-                nodePoolTmp(i)%rch                =  0_int64
                 nodePoolTmp(i)%treeId             = tid
                 if (nodePoolTmp(i)%hasData) then
-                    nodePoolTmp(i)%data = dataList(i-this%pop)
+                    allocate(nodePoolTmp(i)%data, source=dataList(i-this%pop))
                 end if
             end do
             if (associated(this%nodePool)) deallocate(this%nodePool)
@@ -104,7 +68,7 @@ submodule(KdTreeFortran) KdTreeModders
             !$OMP END CRITICAL (tree_mutate)
 
             ! rebuild decision and tree mutation
-            ! serialized: modifications, rootIdx, and lch/rch are shared state
+            ! serialized: modifications, rootIdx, and children are shared state
             !$OMP CRITICAL (tree_mutate)
             if (this%modifications + numNodeToAdd                     &
                 .gt.                                                  &
@@ -121,27 +85,28 @@ submodule(KdTreeFortran) KdTreeModders
                     currIdx = this%rootIdx
                     do
 
-                        ! search left subtree
-                        if (this%nodePool(i)%coords(this%nodePool(currIdx)%splitAxis)       &
-                            .le.                                                            &
-                            this%nodePool(currIdx)%coords(this%nodePool(currIdx)%splitAxis) &
-                        ) then
-                            if (this%nodePool(currIdx)%lch .eq. 0_int64) then
-                                this%nodePool(currIdx)%lch = i
-                                this%nodePool(i)%splitAxis = saxs(this%nodePool(currIdx)%splitAxis, dim)
+                        currAxis = int(this%nodePool(currIdx)%nodeParams(1), int64)
+                        if (this%nodePool(i)%coords(currAxis) .le. this%nodePool(currIdx)%coords(currAxis)) then
+                            if (this%nodePool(currIdx)%children(1) .eq. 0_int64) then
+                                this%nodePool(currIdx)%children(1) = i
+                                allocate(this%nodePool(i)%nodeParams(1))
+                                allocate(this%nodePool(i)%children(2))
+                                this%nodePool(i)%nodeParams(1) = real(this%saxs(currAxis, dim), real64)
+                                this%nodePool(i)%children(:)   = 0_int64
                                 exit
                             else
-                                currIdx = this%nodePool(currIdx)%lch
+                                currIdx = this%nodePool(currIdx)%children(1)
                             end if
-
-                        ! search right subtree
                         else
-                            if (this%nodePool(currIdx)%rch .eq. 0_int64) then
-                                this%nodePool(currIdx)%rch = i
-                                this%nodePool(i)%splitAxis = saxs(this%nodePool(currIdx)%splitAxis, dim)
+                            if (this%nodePool(currIdx)%children(2) .eq. 0_int64) then
+                                this%nodePool(currIdx)%children(2) = i
+                                allocate(this%nodePool(i)%nodeParams(1))
+                                allocate(this%nodePool(i)%children(2))
+                                this%nodePool(i)%nodeParams(1) = real(this%saxs(currAxis, dim), real64)
+                                this%nodePool(i)%children(:)   = 0_int64
                                 exit
                             else
-                                currIdx = this%nodePool(currIdx)%rch
+                                currIdx = this%nodePool(currIdx)%children(2)
                             end if
                         end if
                     end do
@@ -151,20 +116,20 @@ submodule(KdTreeFortran) KdTreeModders
             end if
             !$OMP END CRITICAL (tree_mutate)
 
-        end procedure addNodes
+        end procedure addNodesKDT
 
-        module procedure rmvNodes
+        module procedure rmvNodesKDT
             logical                         :: isInit, hasIds, hasEps, hasRad, hasCrd, resIsPtr
             integer                         :: sizeRad, sizeCrd, sizeDim, sizeIds, buffSze
             integer(int64)                  :: dim
             character(len=9)                :: mtr
-            type(KdNodePtr), allocatable    :: foundNodes(:)
-            type(KdNodeBucket), allocatable :: foundNodesBucket(:)
+            type(NdNodePtr), allocatable    :: foundNodes(:)
+            type(NdNodeBucket), allocatable :: foundNodesBucket(:)
             
             ! compaction variables
             integer(int64), allocatable     :: rmvIds(:)
             logical, allocatable            :: keepMask(:)
-            type(KdNode), pointer           :: newPool(:)
+            type(NdNode), pointer           :: newPool(:)
             integer(int64)                  :: i, j, k, numRmvIds, newPop
 
             ! state variables
@@ -310,6 +275,6 @@ submodule(KdTreeFortran) KdTreeModders
 
             !$OMP END CRITICAL (tree_mutate)
 
-        end procedure rmvNodes
+        end procedure rmvNodesKDT
 
 end submodule KdTreeModders

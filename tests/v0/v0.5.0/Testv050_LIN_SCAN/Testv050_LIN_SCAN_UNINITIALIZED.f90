@@ -1,5 +1,5 @@
 program Testv050_LIN_SCAN_UNINITIALIZED
-    use KdTreeFortran
+    use NdTreeFortran
     implicit none
     call linScanUninitialized()
     contains
@@ -7,7 +7,7 @@ program Testv050_LIN_SCAN_UNINITIALIZED
         subroutine linScanUninitialized()
             type(KdTree)                 :: t
             type(NodeId)                 :: ids(1)
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             res = t%linScan(ids)
         end subroutine linScanUninitialized
 end program Testv050_LIN_SCAN_UNINITIALIZED

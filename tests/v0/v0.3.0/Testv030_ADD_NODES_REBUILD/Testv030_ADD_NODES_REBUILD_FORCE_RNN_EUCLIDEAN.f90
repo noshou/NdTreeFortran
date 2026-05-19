@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_REBUILD_FORCE_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rebuildForceRnnEuclidean()
@@ -12,7 +12,7 @@ program Testv030_ADD_NODES_REBUILD_FORCE_RNN_EUCLIDEAN
             real(real64)               :: new_coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 3.0_real64, 0.0_real64, &
                 0.0_real64, 4.0_real64, 3.0_real64, 4.0_real64], [2, 4])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer(int64)             :: numMods
 
             call t%build(init_coords)

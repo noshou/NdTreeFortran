@@ -4,7 +4,7 @@
 !! Expected: 2 nodes (P1 itself and P3).
 program Testv020_SINGLE_NODE_QUERY_RNN_NODE_MANHATTAN
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -18,7 +18,7 @@ program Testv020_SINGLE_NODE_QUERY_RNN_NODE_MANHATTAN
                 0.6_real64, 0.8_real64,  &
                 0.9_real64, 0.9_real64,  &
                 1.9_real64, 0.9_real64], [2, 4])
-            type(KdNodePtr), allocatable :: res(:), centroid_res(:)
+            type(NdNodePtr), allocatable :: res(:), centroid_res(:)
 
             call t%build(coords)
 

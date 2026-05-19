@@ -1,5 +1,5 @@
 program Testv010_DUPLICATES_FOUR_AXIS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 

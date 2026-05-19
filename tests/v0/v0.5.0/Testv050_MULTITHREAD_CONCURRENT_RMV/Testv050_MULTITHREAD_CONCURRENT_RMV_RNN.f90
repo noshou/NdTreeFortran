@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_CONCURRENT_RMV_RNN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call concurrentRmvRnn()
@@ -16,7 +16,7 @@ program Testv050_MULTITHREAD_CONCURRENT_RMV_RNN
             real(real64)                 :: queries(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 2.0_real64, 2.0_real64, 2.0_real64], [2, 4])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer(int64)               :: pop
             integer                      :: i
 

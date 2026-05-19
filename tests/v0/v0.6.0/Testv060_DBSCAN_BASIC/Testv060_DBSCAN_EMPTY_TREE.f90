@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_EMPTY_TREE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanEmptyTree()
@@ -8,7 +8,7 @@ program Testv060_DBSCAN_EMPTY_TREE
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: numRmv
 
             call t%build(coords)

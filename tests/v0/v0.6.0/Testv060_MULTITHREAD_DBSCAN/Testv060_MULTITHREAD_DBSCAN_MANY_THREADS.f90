@@ -1,5 +1,5 @@
 program Testv060_MULTITHREAD_DBSCAN_MANY_THREADS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     use omp_lib
     implicit none
@@ -11,7 +11,7 @@ program Testv060_MULTITHREAD_DBSCAN_MANY_THREADS
             type(KdTree)                    :: t
             integer,            parameter   :: nClust = 5, clSz = 4, n = nClust * clSz
             real(real64)                    :: coords(2, n)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: pop, total
             integer                         :: errors, ci, pi, idx, i
 

@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_LARGE_MIXED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanLargeMixed()
@@ -14,7 +14,7 @@ program Testv060_DBSCAN_LARGE_MIXED
             integer,            parameter   :: nClust = 50, clSz = 5, nNoise = 50
             integer,            parameter   :: n = nClust * clSz + nNoise
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: ci, pi, ni, idx, nClusters, noiseSize, i
 

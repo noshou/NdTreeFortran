@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_SINGLE_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesCoordsOneHit()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_COORDS_SINGLE_HIT
         !> Single query at (1,1) on a 3x3 grid with epsilon=0.5 must return exactly one node.
         subroutine findNodesCoordsOneHit()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64), allocatable :: found(:)
             ! 3x3 grid: (0,0),(1,0),(2,0),(0,1),(1,1),(2,1),(0,2),(1,2),(2,2)
             real(real64) :: coords(2, 9) = reshape( &

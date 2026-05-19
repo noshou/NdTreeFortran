@@ -1,20 +1,22 @@
-add_library(kdtreefortran
-	KdTreeFortran.f90
-	kdnode/KdNodeDistance.f90
-	kdnode/KdNodeGetters.f90
-	kdnode/KdNodeUtils.f90
+add_library(ndtreefortran
+	NdTreeFortran.f90
+	ndnode/NdNodeDistance.f90
+	ndnode/NdNodeGetters.f90
+	ndnode/NdNodeUtils.f90
+	NdTreeGetters.f90
+	NdTreeUtils.f90
 	kdtree/KdTreeBuild.f90
-	kdtree/KdTreeGetters.f90
 	kdtree/KdTreeUtils.f90
-	kdtree/search_modules/KdTreeRnn.f90
-	kdtree/search_modules/KdTreeLinScan.f90
-	kdtree/search_modules/KdTreeDBSCAN.f90
+	kdtree/KdTreeRnn.f90
 	kdtree/KdTreeModders.f90
+	search_modules/NdTreeRnn.f90
+	search_modules/NdTreeLinScan.f90
+	search_modules/NdTreeDBSCAN.f90
 )
 
-target_include_directories(kdtreefortran PUBLIC
+target_include_directories(ndtreefortran PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 
-target_link_libraries(kdtreefortran PRIVATE OpenMP::OpenMP_Fortran)
+target_link_libraries(ndtreefortran PRIVATE OpenMP::OpenMP_Fortran)

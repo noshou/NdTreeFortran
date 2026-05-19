@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_NODE_QUERY_EUCLIDEAN_UNALLOCATED
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -10,7 +10,7 @@ program Testv020_NODE_QUERY_EUCLIDEAN_UNALLOCATED
     contains
 
         subroutine nodeQuery_Euclidean_Unallocated()
-            type(KdNode)   :: n1, n2
+            type(NdNode)   :: n1, n2
             real(real64) :: dist
 
             dist = n1%euclideanDist(n2)

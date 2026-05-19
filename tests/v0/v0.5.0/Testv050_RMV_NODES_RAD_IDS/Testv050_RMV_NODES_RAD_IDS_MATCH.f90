@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_RAD_IDS_MATCH
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesRadIdsMatch()
@@ -14,7 +14,7 @@ program Testv050_RMV_NODES_RAD_IDS_MATCH
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64, 2.0_real64, 1.0_real64, &
                  0.0_real64, 2.0_real64, 1.0_real64, 2.0_real64, 2.0_real64, 2.0_real64], [2, 9])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64)                 :: query(2, 1) = reshape([1.0_real64, 1.0_real64], [2, 1])
             real(real64)                 :: radii(1)    = [1.1_real64]
             type(NodeId)                 :: centerIds(1)

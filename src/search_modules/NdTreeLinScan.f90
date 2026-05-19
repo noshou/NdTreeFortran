@@ -1,9 +1,9 @@
-submodule (KdTreeFortran) KdTreeLinScan
+submodule(NdTreeFortran) NdTreeLinScan
     implicit none
     contains
         module procedure linScan
-            type(KdNode), pointer :: copy
-            type(KdNodePtr), allocatable :: tmp(:)
+            type(NdNode), pointer :: copy
+            type(NdNodePtr), allocatable :: tmp(:)
             integer(int64) :: i, j, numFound, hint
 
             if (.not. this%initialized) then
@@ -52,4 +52,4 @@ submodule (KdTreeFortran) KdTreeLinScan
             end if
         end procedure linScan
 
-end submodule KdTreeLinScan
+end submodule NdTreeLinScan

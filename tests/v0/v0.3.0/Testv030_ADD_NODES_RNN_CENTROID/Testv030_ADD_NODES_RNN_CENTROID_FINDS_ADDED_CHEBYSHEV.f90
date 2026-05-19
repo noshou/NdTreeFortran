@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_RNN_CENTROID_FINDS_ADDED_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnCentroidFindsAddedChebyshev()
@@ -13,7 +13,7 @@ program Testv030_ADD_NODES_RNN_CENTROID_FINDS_ADDED_CHEBYSHEV
                 50.0_real64, -50.0_real64, -50.0_real64, -50.0_real64], [2, 4])
             real(real64)               :: new_coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(new_coords)

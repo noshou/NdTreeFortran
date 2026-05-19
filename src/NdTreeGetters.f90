@@ -1,4 +1,4 @@
-submodule(KdTreeFortran) KdTreeGetters 
+submodule(NdTreeFortran) NdTreeGetters 
     implicit none 
     contains 
         module procedure getDim    
@@ -40,7 +40,7 @@ submodule(KdTreeFortran) KdTreeGetters
         end procedure getAllNodeIds
 
         module procedure getAllNodes
-            type(KdNode), pointer  :: copy       
+            type(NdNode), pointer  :: copy       
             integer(int64)         :: i
             logical                :: init
 
@@ -71,4 +71,4 @@ submodule(KdTreeFortran) KdTreeGetters
             end do
         end procedure getAllCoords
 
-end submodule KdTreeGetters
+end submodule NdTreeGetters

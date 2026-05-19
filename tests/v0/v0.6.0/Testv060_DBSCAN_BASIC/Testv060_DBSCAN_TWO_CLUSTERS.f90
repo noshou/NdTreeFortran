@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_TWO_CLUSTERS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanTwoClusters()
@@ -10,7 +10,7 @@ program Testv060_DBSCAN_TWO_CLUSTERS
             real(real64)                    :: coords(2, 6) = reshape( &
                 [0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, 0.0_real64, 0.1_real64, &
                  10.0_real64, 10.0_real64, 10.1_real64, 10.0_real64, 10.0_real64, 10.1_real64], [2, 6])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

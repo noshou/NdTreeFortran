@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_CONCURRENT_RNN_CENTROID_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call concurrentRnnCentroidChebyshev()
@@ -26,7 +26,7 @@ program Testv030_MULTITHREAD_CONCURRENT_RNN_CENTROID_CHEBYSHEV
             !$OMP PARALLEL DO NUM_THREADS(4) SCHEDULE(STATIC, 1) SHARED(t, failed)
             do i = 1, 4
                 block
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     res = t%rNN_Centroid([1.0_real64, 1.0_real64], 1.0_real64, metric='chebyshev')
                     if (size(res) .ne. 9) then
                         !$OMP CRITICAL

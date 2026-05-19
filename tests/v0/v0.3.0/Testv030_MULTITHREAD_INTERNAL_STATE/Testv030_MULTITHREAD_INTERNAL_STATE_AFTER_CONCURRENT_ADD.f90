@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_INTERNAL_STATE_AFTER_CONCURRENT_ADD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call internalStateAfterConcurrentAdd()

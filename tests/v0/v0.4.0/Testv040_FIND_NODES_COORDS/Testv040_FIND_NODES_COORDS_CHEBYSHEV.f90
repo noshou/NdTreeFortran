@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesCoordsChebyhev()
@@ -9,7 +9,7 @@ program Testv040_FIND_NODES_COORDS_CHEBYSHEV
         !! Same query with euclidean would return only 3 (diagonal sqrt(2) > 1).
         subroutine findNodesCoordsChebyhev()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             ! (0,0),(1,0),(0,1),(1,1)
             real(real64) :: coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, &

@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_RNN_NODE_FINDS_ADDED_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnNodeFindsAddedEuclidean()
@@ -12,8 +12,8 @@ program Testv030_ADD_NODES_RNN_NODE_FINDS_ADDED_EUCLIDEAN
                 [0.0_real64, 0.0_real64, 10.0_real64, 0.0_real64, 0.0_real64, 10.0_real64], [2, 3])
             real(real64)               :: new_coords(2, 2) = reshape( &
                 [1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: anchor(:), res(:)
-            type(KdNodePtr)              :: target
+            type(NdNodePtr), allocatable :: anchor(:), res(:)
+            type(NdNodePtr)              :: target
 
             call t%build(init_coords)
             anchor = t%rNN_Centroid([0.0_real64, 0.0_real64], 0.01_real64)

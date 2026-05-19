@@ -7,24 +7,19 @@ Tests are organized by version. Every version directory is an independent CMake 
 Tests are not built by default. Pass `-DBUILD_TESTS=ON` to enable them:
 
 ```bash
-cmake -B build -DBUILD_TESTS=ON
-cmake --build build
-ctest --test-dir build --output-on-failure
+cmake -B build -DBUILD_TESTS=ON && cmake --build build && ctest --test-dir build --output-on-failure
 ```
 
-Note: toggling `BUILD_TESTS` on an existing build directory leaves stale `CTestTestfile.cmake` files; do a clean configure (`rm -rf build`) when switching from ON to OFF. \
-\
+Note: toggling `BUILD_TESTS` on an existing build directory leaves stale `CTestTestfile.cmake` files; do a clean configure (`rm -rf build`) when switching from ON to OFF.   
+  
 **IT IS HIGHLY RECOMMENDED TO SKIP Testv060_DBSCAN_1M_ALL_NOISE**
 
 ```bash
-cmake -B build -DBUILD_TESTS=ON \
-    -DSKIP_TESTS="Testv060_DBSCAN_1M_ALL_NOISE;Testv060_DBSCAN_1M_SINGLE_CLUSTER"
-cmake --build build
-ctest --test-dir build --output-on-failure
+cmake -B build -DBUILD_TESTS=ON -DSKIP_TESTS="Testv060_DBSCAN_1M_ALL_NOISE;Testv060_DBSCAN_1M_SINGLE_CLUSTER" && cmake --build build && ctest --test-dir build --output-on-failure
 ```
 
-`Testv060_DBSCAN_1M_SINGLE_CLUSTER` builds a 1M-point single-cluster DBSCAN case and can take well over 2 hours to complete on a performant system.
-`Testv060_DBSCAN_1M_NOISE` takes a few minutes, but can cause bottlenecks on slower systems.
+`Testv060_DBSCAN_1M_SINGLE_CLUSTER` builds a 1M-point single-cluster DBSCAN case and can take well over 2 hours to complete on a performant system.  
+`Testv060_DBSCAN_1M_NOISE`  can cause bottlenecks on slower systems.
 
 Unless you are specifically testing that code path, skip it. For more on skipping individual tests, see the relevant section.
 
@@ -100,10 +95,10 @@ Each test file has exactly one `stop 1` path (or one `error stop` for WILL_FAIL 
 
 #### **Naming**
 
-* Concurrent tests
-  * `Testv{VERSION}_{WHAT_IS_TESTED}.f90`
-* Multithreaded Tests
-  * `Testv{VERSION}_MULTITHREAD_{WHAT_IS_TESTED}.f90`
+- Concurrent tests
+  - `Testv{VERSION}_{WHAT_IS_TESTED}.f90`
+- Multithreaded Tests
+  - `Testv{VERSION}_MULTITHREAD_{WHAT_IS_TESTED}.f90`
 
 ##### **Error output**
 

@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_INDEPENDENT_TREES_ADD_NODES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call independentTreesAddNodes()
@@ -17,7 +17,7 @@ program Testv030_MULTITHREAD_INDEPENDENT_TREES_ADD_NODES
             do i = 1, 4
                 block
                     type(KdTree)                 :: t
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     integer(int64)             :: pop
 
                     call t%build(init_coords)

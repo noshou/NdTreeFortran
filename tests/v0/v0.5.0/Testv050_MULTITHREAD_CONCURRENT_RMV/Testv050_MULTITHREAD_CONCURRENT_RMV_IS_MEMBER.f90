@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_CONCURRENT_RMV_IS_MEMBER
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call concurrentRmvIsMember()
@@ -20,8 +20,8 @@ program Testv050_MULTITHREAD_CONCURRENT_RMV_IS_MEMBER
                     real(real64)                 :: coords(2, 3) = reshape( &
                         [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 3])
                     real(real64)                 :: rmvQuery(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
-                    type(KdNodePtr), allocatable :: preRes(:), postRes(:)
-                    type(KdNode),    pointer     :: toRemove, beforeRmv, afterRmv
+                    type(NdNodePtr), allocatable :: preRes(:), postRes(:)
+                    type(NdNode),    pointer     :: toRemove, beforeRmv, afterRmv
                     integer                      :: numRmv
 
                     call t%build(coords)

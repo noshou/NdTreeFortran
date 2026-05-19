@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_ALL_NOISE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanAllNoise()
@@ -10,7 +10,7 @@ program Testv060_DBSCAN_ALL_NOISE
             real(real64)                    :: coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 10.0_real64, 0.0_real64, &
                  0.0_real64, 10.0_real64, 10.0_real64, 10.0_real64], [2, 4])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

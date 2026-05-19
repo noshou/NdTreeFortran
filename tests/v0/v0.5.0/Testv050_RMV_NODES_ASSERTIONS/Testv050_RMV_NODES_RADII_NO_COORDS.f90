@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_RADII_NO_COORDS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesRadiiNoCoords()

@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_SINGLE_NODE_QUERY_RNN_NODE_INVALID_METRIC
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -14,7 +14,7 @@ program Testv020_SINGLE_NODE_QUERY_RNN_NODE_INVALID_METRIC
             real(real64)               :: coords(2, 2) = reshape( &
                 [1.0_real64, 0.0_real64,  &
                 0.0_real64, 1.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: res(:), centroid_res(:)
+            type(NdNodePtr), allocatable :: res(:), centroid_res(:)
 
             call t%build(coords)
 

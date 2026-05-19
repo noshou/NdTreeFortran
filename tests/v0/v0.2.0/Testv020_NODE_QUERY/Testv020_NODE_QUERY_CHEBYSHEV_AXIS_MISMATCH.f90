@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_NODE_QUERY_CHEBYSHEV_AXIS_MISMATCH
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -19,7 +19,7 @@ program Testv020_NODE_QUERY_CHEBYSHEV_AXIS_MISMATCH
                 [1.0_real64, 1.0_real64, 1.0_real64,  &
                  2.0_real64, 1.0_real64, 1.0_real64,  &
                  3.0_real64, 1.0_real64, 1.0_real64], [3, 3])
-            type(KdNodePtr), allocatable :: res2(:), res3(:)
+            type(NdNodePtr), allocatable :: res2(:), res3(:)
             real(real64)               :: dist
 
             call t2%build(coords2)

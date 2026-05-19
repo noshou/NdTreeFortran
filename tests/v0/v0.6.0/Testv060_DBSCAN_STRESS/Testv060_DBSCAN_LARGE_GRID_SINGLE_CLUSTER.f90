@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_LARGE_GRID_SINGLE_CLUSTER
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanLargeGridSingleCluster()
@@ -11,7 +11,7 @@ program Testv060_DBSCAN_LARGE_GRID_SINGLE_CLUSTER
             integer,            parameter   :: n = 10000
             integer,            parameter   :: side = 100
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: i, j, idx, nClusters, noiseSize
 
             allocate(coords(2, n))

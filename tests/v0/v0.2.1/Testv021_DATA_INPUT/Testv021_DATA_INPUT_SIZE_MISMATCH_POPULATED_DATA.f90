@@ -1,5 +1,5 @@
 program Testv021_DATA_INPUT_SIZE_MISMATCH_POPULATED_DATA
-    use KdTreeFortran 
+    use NdTreeFortran 
     use iso_fortran_env, only: real64
     implicit none
 

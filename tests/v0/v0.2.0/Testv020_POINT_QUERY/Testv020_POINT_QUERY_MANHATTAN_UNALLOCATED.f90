@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_POINT_QUERY_MANHATTAN_UNALLOCATED
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -15,7 +15,7 @@ program Testv020_POINT_QUERY_MANHATTAN_UNALLOCATED
                 [1.0_real64, 1.0_real64,  &
                  2.0_real64, 1.0_real64,  &
                  3.0_real64, 1.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64), allocatable  :: point(:)
             real(real64)               :: dist
 

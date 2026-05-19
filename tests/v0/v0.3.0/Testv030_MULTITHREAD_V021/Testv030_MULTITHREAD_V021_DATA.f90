@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_V021_DATA
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call v021Data()
@@ -21,7 +21,7 @@ program Testv030_MULTITHREAD_V021_DATA
                         1.0_real64, 5.0_real64, -9.0e7_real64,          &
                         0.0_real64, 0.0_real64,  0.0_real64], [3, 6])
                     character(len=1)           :: data(6) = ['1', '2', '3', '4', '5', '6']
-                    type(KdNodePtr), allocatable :: res(:)
+                    type(NdNodePtr), allocatable :: res(:)
                     real(real64)               :: r
                     integer                    :: j
                     logical                    :: found4 = .false., found6 = .false.

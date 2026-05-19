@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_MANY_CLUSTERS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanManyClusters()
@@ -12,7 +12,7 @@ program Testv060_DBSCAN_MANY_CLUSTERS
             type(KdTree)                    :: t
             integer,            parameter   :: nClust = 20, clSz = 5, n = nClust * clSz
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: ci, pi, idx, nClusters, noiseSize, i
 

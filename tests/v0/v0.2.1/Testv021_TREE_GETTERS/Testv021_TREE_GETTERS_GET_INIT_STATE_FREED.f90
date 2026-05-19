@@ -1,5 +1,5 @@
 program Testv021_TREE_GETTERS_GET_INIT_STATE_FREED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call getInitStateFreed()

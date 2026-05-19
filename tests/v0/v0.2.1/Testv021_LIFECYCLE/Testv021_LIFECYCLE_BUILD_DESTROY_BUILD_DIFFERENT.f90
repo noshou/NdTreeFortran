@@ -1,5 +1,5 @@
 program Testv021_LIFECYCLE_BUILD_DESTROY_BUILD_DIFFERENT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call lifecycleBuildDestroyBuildDifferent()

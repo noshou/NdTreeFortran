@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_MIXED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanMixed()
@@ -10,7 +10,7 @@ program Testv060_DBSCAN_MIXED
             real(real64)                    :: coords(2, 5) = reshape( &
                 [0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, 0.0_real64, 0.1_real64, &
                  50.0_real64, 0.0_real64, 0.0_real64, 50.0_real64], [2, 5])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

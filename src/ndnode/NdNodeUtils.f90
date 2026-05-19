@@ -1,9 +1,10 @@
-submodule(KdTreeFortran) KdNodeUtils
+submodule(NdTreeFortran) NdNodeUtils
     implicit none
     contains
 
         module procedure printNode
-            integer :: i, u
+            integer        :: i, u
+            integer(int64) :: c
 
             u = output_unit
             if (present(unit)) u = unit
@@ -13,16 +14,19 @@ submodule(KdTreeFortran) KdNodeUtils
                 write(u, '(A)', advance='no') '  '
             end do
 
-            ! print this Node's coords and split axis
-            write(u, '(A,I0,A)', advance='no') '[axis=', this%splitAxis, '] ('
+            write(u, '(A)', advance='no') '('
             do i = 1, size(this%coords)
                 if (i .gt. 1) write(u, '(A)', advance='no') ', '
                 write(u, '(G0.4)', advance='no') this%coords(i)
             end do
             write(u, '(A)') ')'
 
-            if (this%lch .ne. 0_int64) call nodePool(this%lch)%printNode(depth + 1, nodePool, unit)
-            if (this%rch .ne. 0_int64) call nodePool(this%rch)%printNode(depth + 1, nodePool, unit)
+            if (allocated(this%children)) then
+                do c = 1, size(this%children, kind=int64)
+                    if (this%children(c) .ne. 0_int64) &
+                        call nodePool(this%children(c))%printNode(depth + 1_int64, nodePool, unit)
+                end do
+            end if
         end procedure printNode
 
         module procedure printNodeSingle 
@@ -31,8 +35,7 @@ submodule(KdTreeFortran) KdNodeUtils
             u = output_unit
             if (present(unit)) u = unit
 
-            ! print this Node's coords and split axis
-            write(u, '(A,I0,A)', advance='no') '[axis=', this%splitAxis, '] ('
+            write(u, '(A)', advance='no') '('
             do i = 1, size(this%coords)
                 if (i .gt. 1) write(u, '(A)', advance='no') ', '
                 write(u, '(G0.4)', advance='no') this%coords(i)
@@ -61,4 +64,4 @@ submodule(KdTreeFortran) KdNodeUtils
             call destroyNodeBucket(this)
         end procedure finalizerNodeBucket
 
-end submodule KdNodeUtils
+end submodule NdNodeUtils

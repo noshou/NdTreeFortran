@@ -1,11 +1,11 @@
-submodule(KdTreeFortran) KdTreeDBSCAN
+submodule(NdTreeFortran) NdTreeDBSCAN
     implicit none
     contains 
 
         module procedure DBSCAN
-            type(KdNodePtr), allocatable :: neighbourhood(:), clusterNodes(:)
+            type(NdNodePtr), allocatable :: neighbourhood(:), clusterNodes(:)
             type(NodeId),    allocatable :: nodes(:)
-            type(KdNodePtr), allocatable :: node
+            type(NdNodePtr), allocatable :: node
             integer                      :: bs
             integer(int64)               :: i, j, k, clusterIdx, seedsSize, oldSize, noiseCount
             character(len=9)             :: m
@@ -145,7 +145,7 @@ submodule(KdTreeFortran) KdTreeDBSCAN
                 if (allocated(seeds))    deallocate(seeds)
                 if (allocated(seedsTmp)) deallocate(seedsTmp)
 
-                ! since finalizer of KdNodePtr frees the node itself, we don't want
+                ! since finalizer of NdNodePtr frees the node itself, we don't want
                 ! that happening to the node pool. so set it to null here
                 node%p => null()
 
@@ -172,9 +172,7 @@ submodule(KdTreeFortran) KdTreeDBSCAN
                         end if
                     end associate
                 end do
-
-
             end if
         end procedure DBSCAN
 
-end submodule KdTreeDBSCAN
+end submodule NdTreeDBSCAN

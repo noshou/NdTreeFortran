@@ -1,5 +1,5 @@
 program Testv050_RNN_RAD_IDS_MULTI_QUERY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnRadIdsMultiQuery()
@@ -16,9 +16,9 @@ program Testv050_RNN_RAD_IDS_MULTI_QUERY
             real(real64)                    :: q(2, 2) = reshape( &
                 [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64], [2, 2])
             real(real64)                    :: r(2)    = [0.6_real64, 0.6_real64]
-            type(KdNodePtr), allocatable    :: c1(:), c2(:)
+            type(NdNodePtr), allocatable    :: c1(:), c2(:)
             type(NodeId)                    :: ids(2)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             type(NodeId)                    :: tmp
 
             call t%build(coords)

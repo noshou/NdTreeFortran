@@ -1,5 +1,5 @@
 program Testv050_MULTITHREAD_CONCURRENT_RMV_SAME_NODE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call concurrentRmvSameNode()
@@ -14,7 +14,7 @@ program Testv050_MULTITHREAD_CONCURRENT_RMV_SAME_NODE
             real(real64)                 :: coords(2, 5) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             type(NodeId)                 :: targetId(1)
             integer(int64)               :: pop
             integer                      :: i

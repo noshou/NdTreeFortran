@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_COORDS_IDS_SIZE_MISMATCH
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesCoordsIdsSizeMismatch()

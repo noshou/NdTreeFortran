@@ -1,5 +1,5 @@
 program Testv021_ZERO_RADIUS_POPULATED_TREE_RNN_NODE_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call zeroRadiusPopulatedTree_rNN_Node_Chebyshev()
@@ -15,7 +15,7 @@ program Testv021_ZERO_RADIUS_POPULATED_TREE_RNN_NODE_CHEBYSHEV
                 0.0_real64, 0.0_real64,  0.00000031_real64,       &
                 1.0_real64, 5.0_real64, -93131913.0_real64,       &
                 0.0_real64, 0.0_real64,  0.0_real64], [3, 6])
-            type(KdNodePtr), allocatable :: res(:), centroid_res(:)
+            type(NdNodePtr), allocatable :: res(:), centroid_res(:)
             real(real64)               :: r
             
             call t%build(coords)

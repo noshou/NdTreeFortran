@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanChebyshev()
@@ -13,7 +13,7 @@ program Testv060_DBSCAN_CHEBYSHEV
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 2) = reshape( &
                 [0.0_real64, 0.0_real64, 0.8_real64, 0.8_real64], [2, 2])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_NO_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesCoordsNoHit()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_COORDS_NO_HIT
         !> Query at a point far from all tree nodes must return an empty bucket.
         subroutine findNodesCoordsNoHit()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64) :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64) :: query(2, 1) = reshape([5.0_real64, 5.0_real64], [2, 1])

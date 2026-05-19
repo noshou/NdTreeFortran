@@ -1,13 +1,13 @@
-# KdTreeFortran
+# NdTreeFortran
 
-A thread-safe balanced kd-tree in modern Fortran with radius nearest-neighbour search, id-based lookup, physical node removal, and DBSCAN clustering.
+A thread-safe N-dimensional tree library in modern Fortran. Currently provides a balanced kd-tree (`KdTree`) with radius nearest-neighbour search, id-based lookup, physical node removal, and DBSCAN clustering. The `NdTree` abstract base type is the scaffold for future tree types (BallTree, OcTree, QuadTree).
 
 ---
 
 ## Quick start
 
 ```fortran
-use KdTreeFortran
+use NdTreeFortran
 use iso_fortran_env, only: real64
 
 type(KdTree) :: t
@@ -37,35 +37,45 @@ Compare by `node_id` only:
 if (a%node_id == b%node_id) ...
 ```
 
-### `KdNode`
+### `NdNode`
 
-A single tree node. Not directly constructable by the caller. Accessed via `KdNodePtr%p` after a search. Exposes:
+A single tree node. Not directly constructable by the caller. Accessed via `NdNodePtr%p` after a search. Exposes:
 
-- `getCoords()` - `real(real64)` coordinates
-- `getData()` - polymorphic payload (if set at build time)
-- `getNodeId()` - `type(NodeId)`
-- `getSplitAxis()` - `integer(int64)`, the dimension this node splits on
+- `getCoords()` — `real(real64)(:)` coordinates
+- `getData()` — polymorphic payload (if set at build time)
+- `getNodeId()` — `type(NodeId)`
 
-### `KdNodePtr`
+### `NdNodePtr`
 
-Owned pointer to a deep-copied `KdNode`. Freed automatically when it goes out of scope (via `final`). Call `%destroy()` explicitly if you need early release.
+Owned pointer to a deep-copied `NdNode`. Freed automatically when it goes out of scope (via `final`). Call `%destroy()` explicitly if you need early release.
 
 ```fortran
-type(KdNodePtr), allocatable :: res(:)
+type(NdNodePtr), allocatable :: res(:)
 res = t%rNN_Centroid([0.0_real64, 0.0_real64], 1.0_real64)
 ! res(1)%p points to a heap-allocated copy
 call res(1)%destroy()   ! optional; finalizer runs on deallocation anyway
 ```
 
-### `KdNodeBucket`
+### `NdNodeBucket`
 
-Container for the `KdNodePtr` array returned by multi-query searches and DBSCAN. `%nodes` is a zero-length array when the query has no match.
+Container for the `NdNodePtr` array returned by multi-query searches and DBSCAN. `%nodes` is a zero-length array when the query has no match.
 
 ```fortran
-type :: KdNodeBucket
-    type(KdNodePtr), allocatable :: nodes(:)
-end type KdNodeBucket
+type :: NdNodeBucket
+    type(NdNodePtr), allocatable :: nodes(:)
+end type NdNodeBucket
 ```
+
+### `NdTree` (abstract base)
+
+The shared pool infrastructure, all search functions, and all getters are defined on this abstract type. `KdTree` extends `NdTree`. Users declare `type(KdTree)` — `NdTree` is the scaffold for future tree types.
+
+### `KdTree`
+
+The concrete kd-tree type. Extends `NdTree` and implements the balanced kd-tree build, rNN search, addNodes, and rmvNodes. Also exposes:
+
+- `getSplitAxis(node)` — `integer(int64)`, the split dimension of a given node
+- `printTree([unit])` — prints the tree in pre-order; see format below
 
 ---
 
@@ -140,14 +150,14 @@ n = t%rmvNodes(coordsList=qs, radii=rs)
 ```
 
 
-| Parameter    | Type                | Default       | Notes                                                           |
-| ------------ | ------------------- | ------------- | --------------------------------------------------------------- |
-| `coordsList` | `real(real64)(:,:)` | absent        | required unless `ids` only                                      |
-| `radii`      | `real(real64)(:)`   | absent        | paired with `coordsList`; length must match                     |
-| `ids`        | `type(NodeId)(:)`   | absent        | unordered set; obtain via `getNodeId()`                         |
-| `epsilon`    | `real(real64)`      | `1e-15`       | coord-match tolerance when `radii` is absent                    |
-| `metric`     | `character(*)`      | `'euclidean'` | valid metrics are: `'euclidean'`, `'manhattan'`, `'chebyshev'`  |
-| `bufferSize` | `integer`           | `1000`        | initial rNN buffer capacity; must be > 0                        |
+| Parameter    | Type                | Default       | Notes                                                          |
+| ------------ | ------------------- | ------------- | -------------------------------------------------------------- |
+| `coordsList` | `real(real64)(:,:)` | absent        | required unless `ids` only                                     |
+| `radii`      | `real(real64)(:)`   | absent        | paired with `coordsList`; length must match                    |
+| `ids`        | `type(NodeId)(:)`   | absent        | unordered set; obtain via `getNodeId()`                        |
+| `epsilon`    | `real(real64)`      | `1e-15`       | coord-match tolerance when `radii` is absent                   |
+| `metric`     | `character(*)`      | `'euclidean'` | valid metrics: `'euclidean'`, `'manhattan'`, `'chebyshev'`     |
+| `bufferSize` | `integer`           | `1000`        | initial rNN buffer capacity; must be > 0                       |
 
 
 ---
@@ -156,34 +166,34 @@ n = t%rmvNodes(coordsList=qs, radii=rs)
 
 All search functions are read-only and safe to call concurrently from multiple threads.
 
-### `rNN_Centroid(centroid, radius, metric, bufferSize)` -> `KdNodePtr(:)`
+### `rNN_Centroid(centroid, radius, metric, bufferSize)` -> `NdNodePtr(:)`
 
 Finds all nodes within `radius` of a single coordinate point. The query point need not exist in the tree.
 
 ```fortran
-type(KdNodePtr), allocatable :: res(:)
+type(NdNodePtr), allocatable :: res(:)
 res = t%rNN_Centroid([0.0_real64, 0.0_real64], 1.5_real64)
 res = t%rNN_Centroid([0.0_real64, 0.0_real64], 1.5_real64, metric='manhattan')
 ```
 
-### `rNN_Node(target, radius, bufferSize, metric, excludeTarget)` -> `KdNodePtr(:)`
+### `rNN_Node(target, radius, bufferSize, metric, excludeTarget)` -> `NdNodePtr(:)`
 
-Finds all nodes within `radius` of an existing tree node. Useful for graph-edge computation: pass `excludeTarget=.true.` to exclude the query node itself.
+Finds all nodes within `radius` of an existing tree node. Pass `excludeTarget=.true.` to omit the query node itself.
 
 ```fortran
-type(KdNodePtr), allocatable :: centre(:), neighbours(:)
+type(NdNodePtr), allocatable :: centre(:), neighbours(:)
 
 centre     = t%rNN_Centroid([0.0_real64, 0.0_real64], 0.01_real64)
 neighbours = t%rNN_Node(centre(1), 1.5_real64, excludeTarget=.true.)
 ```
 
-### `rNN_Coords(coords, metric, epsilon, bufferSize)` -> `KdNodeBucket(:)`
+### `rNN_Coords(coords, metric, epsilon, bufferSize)` -> `NdNodeBucket(:)`
 
-Batch coordinate search. `coords` is `[dim, nQuery]`; returns a parallel array of `KdNodeBucket`.
+Batch coordinate search. `coords` is `[dim, nQuery]`; returns a parallel array of `NdNodeBucket`.
 
 ```fortran
 real(real64) :: q(2, 3) = reshape([...], [2, 3])
-type(KdNodeBucket), allocatable :: res(:)
+type(NdNodeBucket), allocatable :: res(:)
 
 res = t%rNN_Coords(q, epsilon=0.5_real64)
 ! res(i)%nodes contains all matches for query i
@@ -198,7 +208,7 @@ res = t%rNN_Coords(q, epsilon=0.5_real64)
 | `bufferSize` | `integer`           | `1000`        | initial buffer; must be > 0                 |
 
 
-### `rNN_Ids(coords, ids, metric, epsilon, bufferSize)` -> `KdNodeBucket(:)`
+### `rNN_Ids(coords, ids, metric, epsilon, bufferSize)` -> `NdNodeBucket(:)`
 
 Like `rNN_Coords`, but `ids(i)` is an additional filter for query `i`. Returns a node only if it is within `epsilon` of `coords(:,i)` and its `node_id` equals `ids(i)%node_id`. `ids` is paired with `coords` column-by-column.
 
@@ -209,7 +219,7 @@ target_ids(2) = nodeB%p%getNodeId()
 res = t%rNN_Ids(q, target_ids, epsilon=1e-10_real64)
 ```
 
-### `rNN_Rad(coords, radii, metric, bufferSize)` -> `KdNodeBucket(:)`
+### `rNN_Rad(coords, radii, metric, bufferSize)` -> `NdNodeBucket(:)`
 
 Per-query variable-radius search. `radii(i)` is the search radius for `coords(:,i)`.
 
@@ -220,7 +230,7 @@ real(real64) :: r(2)    = [1.5_real64, 3.0_real64]
 res = t%rNN_Rad(q, r)
 ```
 
-### `rNN_RadIds(coords, radii, ids, metric, bufferSize)` -> `KdNodeBucket(:)`
+### `rNN_RadIds(coords, radii, ids, metric, bufferSize)` -> `NdNodeBucket(:)`
 
 Per-query variable-radius search, then filters to nodes whose `node_id` appears anywhere in `ids`. `ids` is an unordered set, not paired with `coords`.
 
@@ -232,13 +242,13 @@ res = t%rNN_RadIds(q, r, wanted)
 ! res(i)%nodes: nodes within r(i) of q(:,i) that appear in wanted
 ```
 
-### `linScan(ids)` -> `KdNodePtr(:)`
+### `linScan(ids)` -> `NdNodePtr(:)`
 
 Looks up nodes by `NodeId`. Uses `pool_idx` as an O(1) hint; falls back to O(n) scan only when the hint is stale (e.g. after `rmvNodes`). Returns a zero-length array when no match exists.
 
 ```fortran
 type(NodeId)                 :: ids(2)
-type(KdNodePtr), allocatable :: res(:)
+type(NdNodePtr), allocatable :: res(:)
 
 ids(1) = nodeA%p%getNodeId()
 ids(2) = nodeB%p%getNodeId()
@@ -247,16 +257,16 @@ res = t%linScan(ids)
 
 Prefer coordinate-based search when you know where a node is. Use `linScan` when you have `NodeId` values but no coordinates.
 
-### `DBSCAN(minPts, radius, metric, bufferSize)` -> `KdNodeBucket(:)`
+### `DBSCAN(minPts, radius, metric, bufferSize)` -> `NdNodeBucket(:)`
 
 Density-based spatial clustering. Returns `res(1:nClusters+1)`: each `res(i)` for `i <= nClusters` holds one cluster, and `res(nClusters+1)` holds all noise nodes. Returns a zero-length array when the tree is empty.
 
 ```fortran
-type(KdNodeBucket), allocatable :: res(:)
+type(NdNodeBucket), allocatable :: res(:)
 integer :: nClusters, noiseCount, i
 
-res       = t%DBSCAN(minPts=3, radius=0.5_real64)
-nClusters = size(res) - 1
+res        = t%DBSCAN(minPts=3, radius=0.5_real64)
+nClusters  = size(res) - 1
 noiseCount = size(res(size(res))%nodes)
 
 do i = 1, nClusters
@@ -278,7 +288,41 @@ print *, 'noise nodes:', noiseCount
 
 **Border points:** a point first visited as noise that is later reached as a seed by a core point is correctly reassigned to the cluster.
 
-**Thread safety:** `DBSCAN` is read-only and safe to call concurrently from multiple threads on the same tree.
+---
+
+## Printing
+
+### `printTree([unit])` / `printKdTree([unit])`
+
+Prints the tree in pre-order (root, left subtree, right subtree). Each line is indented two spaces per depth level and prefixed with `[axis=N]`.
+
+```fortran
+! 3 points in 2D: (1,2), (3,1), (5,4)
+call t%printTree()
+```
+
+Output:
+```
+[axis=1] (3.000, 1.000)
+  [axis=2] (1.000, 2.000)
+  [axis=2] (5.000, 4.000)
+```
+
+`unit` defaults to stdout. Pass any open Fortran unit to redirect output.
+
+### `assert(testName, expected)`
+
+Compares `printTree` output against an expected node set, matching as an unordered multiset of coordinate tuples (axis prefix and indentation are stripped). Use in tests to verify tree shape independent of tie-breaking order.
+
+```fortran
+call t%assert('my_test', [ character(len=32) :: &
+    '[axis=1] (3.000, 1.000)',                   &
+    '[axis=2] (1.000, 2.000)',                   &
+    '[axis=2] (5.000, 4.000)'                    &
+])
+```
+
+Prints a diagnostic and calls `stop 1` on mismatch.
 
 ---
 
@@ -294,42 +338,52 @@ print *, 'noise nodes:', noiseCount
 | `getInitState(isInit)`      | via argument     | `.true.` after `build`, `.false.` after `destroy` |
 | `getTreeId()`               | `integer(int64)` | unique id per `build` call                        |
 | `getNumMods()`              | `integer(int64)` | insertions since last rebuild; 0 after rebuild    |
-| `getNumRemoves()`           | `integer(int64)` | cumulative removals; reset to 0 by `destroy`      |
 | `getRebuildRatio()`         | `real(real64)`   | current rebuild threshold                         |
-| `setRebuildRatio(ratio)`    | -                | `ratio` must be in (0, 1)                         |
+| `setRebuildRatio(ratio)`    | —                | `ratio` must be in (0, 1)                         |
 | `associatedNodePool(assoc)` | via argument     | `.true.` when pool is allocated                   |
-| `associatedRoot(assoc)`     | via argument     | `.true.` when root pointer is set                 |
+| `associatedRoot(assoc)`     | via argument     | `.true.` when root index is nonzero               |
 
 
 ### Bulk node retrieval
 
 
-| Function          | Returns             | Notes                                                            |
-| ----------------- | ------------------- | ---------------------------------------------------------------- |
-| `getAllNodes()`   | `KdNodePtr(:)`      | deep-copied array, length == pop; isMember fast path pre-stamped |
-| `getAllCoords()`  | `real(real64)(:,:)` | shape `[dim, pop]`; column i is pool position i                  |
-| `getAllNodeIds()` | `type(NodeId)(:)`   | length pop; pool_idx accurate at call time                       |
+| Function          | Returns               | Notes                                                              |
+| ----------------- | --------------------- | ------------------------------------------------------------------ |
+| `getAllNodes()`   | `NdNodePtr(:)`        | deep-copied array, length == pop; pool_idx pre-stamped             |
+| `getAllCoords()`  | `real(real64)(:,:)`   | shape `[dim, pop]`; column i is pool position i                    |
+| `getAllNodeIds()` | `type(NodeId)(:)`     | length pop; pool_idx accurate at call time                         |
 
 
 ### Node accessors
 
-On a `KdNode` accessed via `KdNodePtr%p`:
+On an `NdNode` accessed via `NdNodePtr%p`:
 
 
-| Method           | Returns           | Notes                                    |
-| ---------------- | ----------------- | ---------------------------------------- |
-| `getNodeId()`    | `type(NodeId)`    | stable `node_id`; `pool_idx` at dispatch |
-| `getCoords()`    | `real(real64)(:)` | copy of node coordinates                 |
-| `getData()`      | `class(*)`        | polymorphic payload; set at build time   |
-| `getSplitAxis()` | `integer(int64)`  | splitting dimension in the kd-tree       |
+| Method        | Returns           | Notes                                  |
+| ------------- | ----------------- | -------------------------------------- |
+| `getNodeId()` | `type(NodeId)`    | stable `node_id`; `pool_idx` at search |
+| `getCoords()` | `real(real64)(:)` | copy of node coordinates               |
+| `getData()`   | `class(*)`        | polymorphic payload; set at build time |
 
+
+### `getSplitAxis(node)` -> `integer(int64)`
+
+Returns the splitting dimension for a given node in the kd-tree. Called on the tree, not the node:
+
+```fortran
+type(NdNodePtr), allocatable :: res(:)
+integer(int64)               :: axis
+
+res  = t%rNN_Centroid([0.0_real64, 0.0_real64], 1.0_real64)
+axis = t%getSplitAxis(res(1)%p)   ! 1-based dimension index
+```
 
 ### `isMember(target)` -> `logical`
 
-Returns `.true.` if `target` belongs to this tree instance and has not been removed. Uses a fast path (`numRemovesSnapshot` comparison) when no removals have occurred since the node was dispatched; falls back to a full pool scan otherwise.
+Returns `.true.` if `target` belongs to this tree instance and has not been removed. Uses `pool_idx` from the node's `NodeId` as an O(1) hint; falls back to a full O(n) pool scan when the hint is stale (e.g. after `rmvNodes` compacted the pool).
 
 ```fortran
-type(KdNodePtr), allocatable :: res(:)
+type(NdNodePtr), allocatable :: res(:)
 res = t%rNN_Centroid([0.0_real64, 0.0_real64], 1.0_real64)
 print *, t%isMember(res(1))   ! .true.
 ```
@@ -341,12 +395,12 @@ print *, t%isMember(res(1))   ! .true.
 
 | Operation                                                                        | Concurrent-safe?                                                  |
 | -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes -- read-only, no locking                                      |
-| `addNodes` from multiple threads on one tree                                     | Yes -- serialized via `!$OMP CRITICAL (tree_mutate)`              |
-| `rmvNodes` from multiple threads on one tree                                     | Yes -- search is read-only; compaction and rebuild are serialized |
-| `rmvNodes` concurrent with `addNodes`                                            | Yes -- same critical region                                       |
-| Same node removed by N threads concurrently                                      | Yes -- keepMask re-checked inside critical; only 1 thread removes |
-| `build` concurrent with `addNodes`/`rmvNodes`                                    | No -- `build` is not guarded                                      |
+| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes — read-only, no locking                                       |
+| `addNodes` from multiple threads on one tree                                     | Yes — serialized via `!$OMP CRITICAL (tree_mutate)`               |
+| `rmvNodes` from multiple threads on one tree                                     | Yes — search is read-only; compaction and rebuild are serialized  |
+| `rmvNodes` concurrent with `addNodes`                                            | Yes — same critical region                                        |
+| Same node removed by N threads concurrently                                      | Yes — keepMask re-checked inside critical; only 1 thread removes  |
+| `build` concurrent with `addNodes`/`rmvNodes`                                    | No — `build` is not guarded                                       |
 | `destroy` concurrent with anything                                               | No                                                                |
 
 
@@ -358,7 +412,7 @@ print *, t%isMember(res(1))   ! .true.
 
 ```fortran
 type(KdTree)                 :: t
-type(KdNodePtr), allocatable :: allNodes(:), neighbours(:)
+type(NdNodePtr), allocatable :: allNodes(:), neighbours(:)
 real(real64)                 :: r = 1.5_real64
 integer                      :: i
 
@@ -374,7 +428,7 @@ end do
 ### DBSCAN then working with individual clusters
 
 ```fortran
-type(KdNodeBucket), allocatable :: res(:)
+type(NdNodeBucket), allocatable :: res(:)
 integer :: nClusters, i, j
 
 res       = t%DBSCAN(minPts=4, radius=0.5_real64)
@@ -382,7 +436,6 @@ nClusters = size(res) - 1
 
 do i = 1, nClusters
     do j = 1, size(res(i)%nodes)
-        ! res(i)%nodes(j)%p -- access individual node in cluster i
         print *, res(i)%nodes(j)%p%getCoords()
     end do
 end do
@@ -397,18 +450,16 @@ end do
 
 ```fortran
 type(KdTree)                    :: t
-type(KdNodePtr),    allocatable :: found(:)
+type(NdNodePtr),    allocatable :: found(:)
 type(NodeId)                    :: id(1)
-type(KdNodeBucket), allocatable :: res(:)
+type(NdNodeBucket), allocatable :: res(:)
 integer                         :: numRmv
 
 call t%build(pts)
 
-! Capture id at search time
 found  = t%rNN_Centroid([0.0_real64, 0.0_real64], 0.01_real64)
 id(1)  = found(1)%p%getNodeId()
 
-! Later: verify it still exists, then remove it
 res = t%rNN_RadIds(q, r, id)
 if (size(res(1)%nodes) > 0) then
     numRmv = t%rmvNodes(ids=id)
@@ -419,13 +470,11 @@ end if
 
 ```fortran
 type(KdTree)                    :: t
-type(KdNodeBucket), allocatable :: res(:)
-integer                         :: errors
+type(NdNodeBucket), allocatable :: res(:)
 
 call t%build(pts)
-errors = 0
 
-!$OMP PARALLEL DEFAULT(NONE) SHARED(t, errors) NUM_THREADS(4) PRIVATE(res)
+!$OMP PARALLEL DEFAULT(NONE) SHARED(t) NUM_THREADS(4) PRIVATE(res)
 res = t%DBSCAN(minPts=3, radius=0.5_real64)
 ! Each thread gets its own result copy; tree is read-only
 !$OMP END PARALLEL

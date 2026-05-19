@@ -2,7 +2,7 @@
 !! Node at (1,1) to node at (4,2): expected L1 distance = 4.0.
 program Testv020_NODE_QUERY_MANHATTAN
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -22,7 +22,7 @@ program Testv020_NODE_QUERY_MANHATTAN
                 3.0_real64, 2.0_real64,  &
                 4.0_real64, 2.0_real64,  &
                 5.0_real64, 2.0_real64], [2, 10])
-            type(KdNodePtr), allocatable :: res1(:), res2(:)
+            type(NdNodePtr), allocatable :: res1(:), res2(:)
             real(real64)               :: dist
 
             call t%build(coords)

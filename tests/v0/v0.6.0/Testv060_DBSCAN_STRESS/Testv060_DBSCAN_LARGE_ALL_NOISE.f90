@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_LARGE_ALL_NOISE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanLargeAllNoise()
@@ -10,7 +10,7 @@ program Testv060_DBSCAN_LARGE_ALL_NOISE
             type(KdTree)                    :: t
             integer,            parameter   :: n = 10000
             real(real64),       allocatable :: coords(:,:)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total, pop
             integer                         :: i, nClusters, noiseSize
 

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_IDS_UNINITIALIZED
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesIdsUninitialized()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_IDS_UNINITIALIZED
         !> rNN_Ids on a tree that has never been built must stop 1.
         subroutine findNodesIdsUninitialized()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64)   :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             type(NodeId)   :: ids(1)
 

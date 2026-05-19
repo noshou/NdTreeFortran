@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_COLLINEAR_TWO_AXIS_RNN_EUCLIDEAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call collinearTwoAxisRnnEuclidean()
@@ -14,7 +14,7 @@ program Testv030_ADD_NODES_COLLINEAR_TWO_AXIS_RNN_EUCLIDEAN
                 [0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64, &
                 0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64, 0.0_real64, &
                 0.0_real64, 1.0_real64, 2.0_real64, 3.0_real64, 4.0_real64], [3, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(col_coords)

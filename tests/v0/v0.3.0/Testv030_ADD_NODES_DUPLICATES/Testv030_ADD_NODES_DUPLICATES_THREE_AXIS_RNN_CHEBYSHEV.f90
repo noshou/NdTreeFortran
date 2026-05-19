@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_DUPLICATES_THREE_AXIS_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call duplicatesThreeAxisRnnChebyshev()
@@ -12,7 +12,7 @@ program Testv030_ADD_NODES_DUPLICATES_THREE_AXIS_RNN_CHEBYSHEV
                 [5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
                 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
                 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64], [3, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(dup_coords)

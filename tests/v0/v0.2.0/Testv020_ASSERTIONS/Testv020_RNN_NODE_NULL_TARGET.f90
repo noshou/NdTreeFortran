@@ -2,7 +2,7 @@
 !! Registered with WILL_FAIL in CTest.
 program Testv020_RNN_NODE_NULL_TARGET
 
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -15,8 +15,8 @@ program Testv020_RNN_NODE_NULL_TARGET
                 [1.0_real64, 1.0_real64,  &
                 2.0_real64, 1.0_real64,  &
                 3.0_real64, 1.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
-            type(KdNodePtr)              :: target
+            type(NdNodePtr), allocatable :: res(:)
+            type(NdNodePtr)              :: target
 
             call t%build(coords)
 

@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_BORDER_POINTS
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanBorderPoints()
@@ -21,7 +21,7 @@ program Testv060_DBSCAN_BORDER_POINTS
             real(real64)                    :: coords(2, 5) = reshape( &
                 [0.4_real64, 0.0_real64, 0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, &
                  0.2_real64, 0.0_real64, 15.0_real64, 0.0_real64], [2, 5])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: nClusters, clusterSize, noiseSize
 
             call t%build(coords)

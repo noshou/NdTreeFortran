@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_REBUILD_RNN_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rmvNodesRebuildRnnManhattan()
@@ -13,7 +13,7 @@ program Testv050_RMV_NODES_REBUILD_RNN_MANHATTAN
                  0.0_real64, 2.0_real64, 2.0_real64, 2.0_real64], [2, 4])
             real(real64)                 :: rmvQuery(2, 2) = reshape( &
                 [2.0_real64, 0.0_real64, 2.0_real64, 2.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer                      :: numRmv
 
             call t%build(coords)

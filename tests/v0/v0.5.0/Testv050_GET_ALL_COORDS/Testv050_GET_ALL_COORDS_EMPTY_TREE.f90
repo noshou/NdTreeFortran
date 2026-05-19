@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_COORDS_EMPTY_TREE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call getAllCoordsEmptyTree()

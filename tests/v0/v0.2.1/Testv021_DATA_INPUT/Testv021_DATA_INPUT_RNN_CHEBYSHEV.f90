@@ -1,5 +1,5 @@
 program Testv021_DATA_INPUT_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
 
     call dataInput_rNN_Chebyshev()
@@ -16,7 +16,7 @@ program Testv021_DATA_INPUT_RNN_CHEBYSHEV
                 1.0_real64, 5.0_real64, -93131913.0_real64,       &
                 0.0_real64, 0.0_real64,  0.0_real64], [3, 6])
             character(len=1)           :: data(6) = ['1', '2', '3', '4', '5', '6']
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64)               :: r
             integer                    :: i
             logical                    :: found4 = .false., found6 = .false.

@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_SET_REBUILD_RATIO_FORCES_REBUILD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call setRebuildRatioForcesRebuild()
@@ -14,7 +14,7 @@ program Testv030_ADD_NODES_SET_REBUILD_RATIO_FORCES_REBUILD
                 0.0_real64, 10.0_real64, 10.0_real64, 10.0_real64], [2, 4])
             real(real64)               :: new_coords(2, 2) = reshape( &
                 [50.0_real64, 50.0_real64, 60.0_real64, 60.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64)               :: ratio
             integer(int64)             :: numMods, pop
             logical                    :: isInit, nodePoolAssoc, rootAssoc

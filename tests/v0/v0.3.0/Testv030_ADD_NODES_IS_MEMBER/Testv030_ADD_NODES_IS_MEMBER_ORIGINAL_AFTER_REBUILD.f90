@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_IS_MEMBER_ORIGINAL_AFTER_REBUILD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesIsMemberOriginalAfterRebuild()
@@ -11,8 +11,8 @@ program Testv030_ADD_NODES_IS_MEMBER_ORIGINAL_AFTER_REBUILD
                 [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 3])
             real(real64)               :: new_coords(2, 2) = reshape( &
                 [1.0_real64, 1.0_real64, 4.0_real64, 4.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: res(:)
-            type(KdNode),    pointer     :: n
+            type(NdNodePtr), allocatable :: res(:)
+            type(NdNode),    pointer     :: n
 
             call t%build(coords)
             res = t%rNN_Centroid([0.0_real64, 0.0_real64], 0.01_real64)

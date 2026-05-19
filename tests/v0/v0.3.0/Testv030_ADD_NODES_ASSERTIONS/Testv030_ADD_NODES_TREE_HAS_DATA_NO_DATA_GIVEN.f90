@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_TREE_HAS_DATA_NO_DATA_GIVEN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call addNodesTreeHasDataNoDataGiven()

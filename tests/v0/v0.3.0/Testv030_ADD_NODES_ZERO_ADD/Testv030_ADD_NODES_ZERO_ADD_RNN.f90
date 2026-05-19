@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_ZERO_ADD_RNN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call zeroAddRnn()
@@ -10,7 +10,7 @@ program Testv030_ADD_NODES_ZERO_ADD_RNN
             real(real64)               :: init_coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64)               :: zero_coords(2, 0)
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(zero_coords)

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_IDS_AFTER_ADD_NODES
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call findNodesIdsAfterAdd()
@@ -10,8 +10,8 @@ program Testv040_FIND_NODES_IDS_AFTER_ADD_NODES
         !! Query at (5,5) with the original node's id -> 0 results.
         subroutine findNodesIdsAfterAdd()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
-            type(KdNodePtr),    allocatable :: pool(:)
+            type(NdNodeBucket), allocatable :: res(:)
+            type(NdNodePtr),    allocatable :: pool(:)
             real(real64) :: init_coord(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64) :: new_coord(2, 1)  = reshape([5.0_real64, 5.0_real64], [2, 1])
             type(NodeId)             :: id_new(1), id_orig(1)

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_IDS_SINGLE_HIT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call findNodesIdsSingleHit()
@@ -8,7 +8,7 @@ program Testv040_FIND_NODES_IDS_SINGLE_HIT
         !! A single-node tree assigns nodeId=1 (currNodeId starts at 0, increments once).
         subroutine findNodesIdsSingleHit()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64)   :: coords(2, 1) = reshape([3.0_real64, 4.0_real64], [2, 1])
             type(NodeId)   :: ids(1)
 

@@ -1,5 +1,5 @@
 program Testv021_LIFECYCLE_UNINITIALIZED_DESTROY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call lifecycleUninitializedDestroy()

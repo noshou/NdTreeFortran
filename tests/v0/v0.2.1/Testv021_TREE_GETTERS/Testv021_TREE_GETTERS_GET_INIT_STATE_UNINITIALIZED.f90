@@ -1,5 +1,5 @@
 program Testv021_TREE_GETTERS_GET_INIT_STATE_UNINITIALIZED
-    use KdTreeFortran
+    use NdTreeFortran
     implicit none
     call getInitStateUninitialized()
     contains

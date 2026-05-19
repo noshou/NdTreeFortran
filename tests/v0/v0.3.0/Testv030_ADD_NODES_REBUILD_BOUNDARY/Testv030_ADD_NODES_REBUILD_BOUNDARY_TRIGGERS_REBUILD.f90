@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_REBUILD_BOUNDARY_TRIGGERS_REBUILD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rebuildBoundaryTriggersRebuild()
@@ -15,7 +15,7 @@ program Testv030_ADD_NODES_REBUILD_BOUNDARY_TRIGGERS_REBUILD
             real(real64)               :: new_coords(2, 3) = reshape( &
                 [50.0_real64, 50.0_real64, 60.0_real64, 60.0_real64, &
                 70.0_real64, 70.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             integer(int64)             :: numMods, pop
             logical                    :: isInit, nodePoolAssoc, rootAssoc
 

@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_COORDS_IDS_MATCH
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesCoordsIdsMatch()
@@ -10,7 +10,7 @@ program Testv050_RMV_NODES_COORDS_IDS_MATCH
             type(KdTree)                 :: t
             real(real64)                 :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             real(real64)                 :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             type(NodeId)                 :: targetIds(1)
             integer                      :: numRmv

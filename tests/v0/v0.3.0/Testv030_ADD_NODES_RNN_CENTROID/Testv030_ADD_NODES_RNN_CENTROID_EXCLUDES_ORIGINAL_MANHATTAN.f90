@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_RNN_CENTROID_EXCLUDES_ORIGINAL_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call rnnCentroidExcludesOriginalManhattan()
@@ -12,7 +12,7 @@ program Testv030_ADD_NODES_RNN_CENTROID_EXCLUDES_ORIGINAL_MANHATTAN
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64)               :: new_coords(2, 2) = reshape( &
                 [100.0_real64, 100.0_real64, 200.0_real64, 200.0_real64], [2, 2])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(new_coords)

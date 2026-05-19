@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_AFTER_ADD
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanAfterAdd()
@@ -11,7 +11,7 @@ program Testv060_DBSCAN_AFTER_ADD
                 [0.0_real64, 0.0_real64, 0.1_real64, 0.0_real64, 0.0_real64, 0.1_real64], [2, 3])
             real(real64)                    :: newCoords(2, 3) = reshape( &
                 [10.0_real64, 10.0_real64, 10.1_real64, 10.0_real64, 10.0_real64, 10.1_real64], [2, 3])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: total1, total2, pop1, pop2
             integer                         :: i
 

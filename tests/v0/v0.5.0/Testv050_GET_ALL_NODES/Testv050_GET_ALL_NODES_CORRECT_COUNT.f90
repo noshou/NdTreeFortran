@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_NODES_CORRECT_COUNT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call getAllNodesCorrectCount()
@@ -10,7 +10,7 @@ program Testv050_GET_ALL_NODES_CORRECT_COUNT
             real(real64)                 :: coords(2, 5) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  0.0_real64, 1.0_real64, 1.0_real64, 1.0_real64], [2, 5])
-            type(KdNodePtr), allocatable :: nodes(:)
+            type(NdNodePtr), allocatable :: nodes(:)
             integer(int64)               :: pop
 
             call t%build(coords)

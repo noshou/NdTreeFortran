@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_POPULATION_INVARIANT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call dbscanPopulationInvariant()
@@ -12,7 +12,7 @@ program Testv060_DBSCAN_POPULATION_INVARIANT
                  0.0_real64, 0.1_real64, 0.1_real64, 0.1_real64, &
                  10.0_real64, 0.0_real64, 10.1_real64, 0.0_real64, &
                  5.0_real64, 5.0_real64, 20.0_real64, 20.0_real64], [2, 8])
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer(int64)                  :: pop, total
             integer                         :: i
 

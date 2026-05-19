@@ -1,5 +1,5 @@
 program Testv010_EMPTY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call empty()

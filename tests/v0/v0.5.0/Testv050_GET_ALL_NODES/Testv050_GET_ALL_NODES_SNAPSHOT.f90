@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_NODES_SNAPSHOT
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call getAllNodesSnapshot()
@@ -17,7 +17,7 @@ program Testv050_GET_ALL_NODES_SNAPSHOT
             real(real64)                 :: extra(2, 2)  = reshape( &
                 [9.0_real64, 0.0_real64, 0.0_real64, 9.0_real64], [2, 2])
             real(real64)                 :: rmvQuery(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
-            type(KdNodePtr), allocatable :: nodes(:)
+            type(NdNodePtr), allocatable :: nodes(:)
             integer                      :: numRmv, i
 
             call t%build(coords)

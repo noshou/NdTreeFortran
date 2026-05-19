@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_COLLINEAR_ONE_AXIS_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call collinearOneAxisRnnChebyshev()
@@ -11,7 +11,7 @@ program Testv030_ADD_NODES_COLLINEAR_ONE_AXIS_RNN_CHEBYSHEV
             real(real64)               :: col_coords(2, 5) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &
                  3.0_real64, 0.0_real64, 4.0_real64, 0.0_real64], [2, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(col_coords)

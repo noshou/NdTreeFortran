@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_MANHATTAN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesCoordsmanhattan()
@@ -8,7 +8,7 @@ program Testv040_FIND_NODES_COORDS_MANHATTAN
         !! Manhattan: (1,1) has L1 dist 2 > 1.4, so 3 of 4 nodes match.
         subroutine findNodesCoordsmanhattan()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             ! (0,0),(1,0),(0,1),(1,1)
             real(real64) :: coords(2, 4) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, &

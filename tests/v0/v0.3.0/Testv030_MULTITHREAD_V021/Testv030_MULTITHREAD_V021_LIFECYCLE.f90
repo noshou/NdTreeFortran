@@ -1,5 +1,5 @@
 program Testv030_MULTITHREAD_V021_LIFECYCLE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call v021Lifecycle()

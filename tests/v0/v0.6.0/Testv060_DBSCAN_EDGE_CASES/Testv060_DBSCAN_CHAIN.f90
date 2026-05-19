@@ -1,5 +1,5 @@
 program Testv060_DBSCAN_CHAIN
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call dbscanChain()
@@ -10,7 +10,7 @@ program Testv060_DBSCAN_CHAIN
         subroutine dbscanChain()
             type(KdTree)                    :: t
             real(real64)                    :: coords(2, 10)
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             integer                         :: i, nClusters, noiseSize, total
 
             do i = 1, 10

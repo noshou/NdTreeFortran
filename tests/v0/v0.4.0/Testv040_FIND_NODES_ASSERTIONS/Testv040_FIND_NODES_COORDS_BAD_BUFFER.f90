@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_BAD_BUFFER
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesBadBuffer()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_COORDS_BAD_BUFFER
         !> rNN_Coords with bufferSize <= 0 must stop 1.
         subroutine findNodesBadBuffer()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64) :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64) :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])

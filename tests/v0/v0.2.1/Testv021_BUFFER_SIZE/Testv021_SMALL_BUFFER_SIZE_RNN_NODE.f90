@@ -1,5 +1,5 @@
 program Testv021_SMALL_BUFFER_SIZE_RNN_NODE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
@@ -20,7 +20,7 @@ program Testv021_SMALL_BUFFER_SIZE_RNN_NODE
                  0.0_real64, 0.3_real64, 0.0_real64, &
                  0.0_real64, 0.4_real64, 0.0_real64, &
                  0.0_real64, 0.5_real64, 0.0_real64], [3, 10])
-            type(KdNodePtr), allocatable :: res(:), centroid_res(:)
+            type(NdNodePtr), allocatable :: res(:), centroid_res(:)
             integer                    :: i
 
             call t%build(coords)

@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_MULTI_QUERY
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesCoordsMultiQuery()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_COORDS_MULTI_QUERY
         !> Two queries on a 3x3 grid; each must return exactly one matching node.
         subroutine findNodesCoordsMultiQuery()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64), allocatable :: c1(:), c2(:)
             real(real64) :: coords(2, 9) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 2.0_real64, 0.0_real64, &

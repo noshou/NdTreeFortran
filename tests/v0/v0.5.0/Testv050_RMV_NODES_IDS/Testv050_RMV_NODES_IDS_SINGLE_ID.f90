@@ -1,5 +1,5 @@
 program Testv050_RMV_NODES_IDS_SINGLE_ID
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call rmvNodesIdsSingleId()
@@ -10,7 +10,7 @@ program Testv050_RMV_NODES_IDS_SINGLE_ID
             type(KdTree)                 :: t
             real(real64)                 :: coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 5.0_real64, 0.0_real64, 0.0_real64, 5.0_real64], [2, 3])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
             type(NodeId)                 :: targetId(1)
             integer                      :: numRmv
             integer(int64)               :: pop

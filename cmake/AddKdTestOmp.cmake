@@ -10,8 +10,8 @@
 #                Used for tests that exercise error guards (error stop paths).
 #
 # Behaviour:
-#   - Builds ${name} from ${name}.f90 and links it against both kdtreefortran
-#     and OpenMP::OpenMP_Fortran. The kdtreefortran library links OpenMP
+#   - Builds ${name} from ${name}.f90 and links it against both ndtreefortran
+#     and OpenMP::OpenMP_Fortran. The ndtreefortran library links OpenMP
 #     privately, so test executables that contain their own !$OMP directives
 #     must link it explicitly via this macro.
 #   - Sets the OMP_NUM_THREADS=4 environment variable for the test run. Tests
@@ -34,7 +34,7 @@ function(add_kdtest_omp name)
         return()
     endif()
     add_executable(${name} ${name}.f90)
-    target_link_libraries(${name} PRIVATE kdtreefortran OpenMP::OpenMP_Fortran)
+    target_link_libraries(${name} PRIVATE ndtreefortran OpenMP::OpenMP_Fortran)
     add_test(NAME ${name} COMMAND ${name})
     _kd_apply_version_labels(${name})
     set_tests_properties(${name} PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4")

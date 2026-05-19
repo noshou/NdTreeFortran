@@ -1,5 +1,5 @@
 program Testv050_GET_ALL_NODES_EMPTY_TREE
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64, int64
     implicit none
     call getAllNodesEmptyTree()
@@ -12,7 +12,7 @@ program Testv050_GET_ALL_NODES_EMPTY_TREE
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64)                 :: query(2, 1)  = reshape([0.0_real64, 0.0_real64], [2, 1])
             real(real64)                 :: radii(1)     = [100.0_real64]
-            type(KdNodePtr), allocatable :: nodes(:)
+            type(NdNodePtr), allocatable :: nodes(:)
             integer                      :: numRmv
 
             call t%build(coords)

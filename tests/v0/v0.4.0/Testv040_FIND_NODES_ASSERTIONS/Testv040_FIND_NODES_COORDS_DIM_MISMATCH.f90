@@ -1,5 +1,5 @@
 program Testv040_FIND_NODES_COORDS_DIM_MISMATCH
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call findNodesDimMismatch()
@@ -7,7 +7,7 @@ program Testv040_FIND_NODES_COORDS_DIM_MISMATCH
         !> rNN_Coords with wrong dimension must stop 1.
         subroutine findNodesDimMismatch()
             type(KdTree) :: t
-            type(KdNodeBucket), allocatable :: res(:)
+            type(NdNodeBucket), allocatable :: res(:)
             real(real64) :: init_coords(2, 3) = reshape( &
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             real(real64) :: bad_query(3, 1) = reshape([0.0_real64, 0.0_real64, 0.0_real64], [3, 1])

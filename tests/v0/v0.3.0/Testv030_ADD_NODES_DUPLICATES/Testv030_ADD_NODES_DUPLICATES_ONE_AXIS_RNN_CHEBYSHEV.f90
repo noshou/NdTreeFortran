@@ -1,5 +1,5 @@
 program Testv030_ADD_NODES_DUPLICATES_ONE_AXIS_RNN_CHEBYSHEV
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
     call duplicatesOneAxisRnnChebyshev()
@@ -10,7 +10,7 @@ program Testv030_ADD_NODES_DUPLICATES_ONE_AXIS_RNN_CHEBYSHEV
                 [1.0_real64, 9.0_real64], [1, 2])
             real(real64)               :: dup_coords(1, 5) = reshape( &
                 [5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64], [1, 5])
-            type(KdNodePtr), allocatable :: res(:)
+            type(NdNodePtr), allocatable :: res(:)
 
             call t%build(init_coords)
             call t%addNodes(dup_coords)

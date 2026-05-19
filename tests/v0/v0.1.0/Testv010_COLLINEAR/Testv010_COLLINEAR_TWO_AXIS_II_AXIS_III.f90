@@ -1,5 +1,5 @@
 program Testv010_COLLINEAR_TWO_AXIS_II_AXIS_III
-    use KdTreeFortran
+    use NdTreeFortran
     use iso_fortran_env, only: real64
     implicit none
 
