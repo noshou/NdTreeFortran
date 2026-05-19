@@ -5,41 +5,13 @@ submodule(NdTreeFortran) KdTreeModders
 
         module procedure addNodesKDT
 
-            logical                 :: isInit, hasData, rootHasData, hasRoot
-            integer(int64)          :: dataListSize, i, dim, pop, numNodeToAdd, tid, currIdx, currAxis
-            type(NdNode), pointer   :: nodePoolTmp(:)
+            logical               :: hasData
+            integer(int64)        :: i, dim, pop, numNodeToAdd, tid, currIdx, currAxis
+            type(NdNode), pointer :: nodePoolTmp(:)
 
-            ! initialize state variables
-            call this%associatedRoot(hasRoot)
-            if (hasRoot) rootHasData = this%nodePool(this%rootIdx)%hasData
-            call this%getInitState(isInit)
-            hasData = present(dataList)
+            hasData      = present(dataList)
             numNodeToAdd = size(coordsList, 2)
-            dim = size(coordsList, 1)
-
-            ! assertion checks
-            if (.not. isInit) then
-                error stop "addNodes: tree uninitialized (call this%build() first?)"
-            else if (dim .ne. this%dim) then
-                error stop "addNodes: dimension of coordinates must match dimension of tree!"
-            else if (hasData) then
-                dataListSize = size(dataList)
-                if (dataListSize .eq. 0_int64) then
-                    error stop "addNodes: size of data list must be greater than zero!"
-                else if (dataListSize .ne. numNodeToAdd) then
-                    error stop "addNodes: number of data points must match number of coordinates!"
-                else if (hasRoot) then
-                    if (.not. rootHasData) then
-                        error stop "addNodes: tree takes no data input!"
-                    else if (.not. same_type_as(dataList(1), this%nodePool(this%rootIdx)%data)) then
-                        error stop "addNodes: data mismatch between tree and dataList"
-                    end if
-                end if
-            else
-                if (hasRoot .and. rootHasData) then
-                    error stop "addNodes: tree requires data input!"
-                end if
-            end if
+            dim          = size(coordsList, 1)
 
             ! realloc nodePool ; serialized: nodePool pointer, pop,
             ! and currNodeId are all shared state
@@ -119,69 +91,19 @@ submodule(NdTreeFortran) KdTreeModders
         end procedure addNodesKDT
 
         module procedure rmvNodesKDT
-            logical                         :: isInit, hasIds, hasEps, hasRad, hasCrd, resIsPtr
-            integer                         :: sizeRad, sizeCrd, sizeDim, sizeIds, buffSze
-            integer(int64)                  :: dim
-            character(len=9)                :: mtr
+            logical                         :: hasIds, hasRad, hasCrd, resIsPtr
             type(NdNodePtr), allocatable    :: foundNodes(:)
             type(NdNodeBucket), allocatable :: foundNodesBucket(:)
-            
+
             ! compaction variables
             integer(int64), allocatable     :: rmvIds(:)
             logical, allocatable            :: keepMask(:)
             type(NdNode), pointer           :: newPool(:)
             integer(int64)                  :: i, j, k, numRmvIds, newPop
 
-            ! state variables
-            call this%getInitState(isInit)
             hasIds = present(ids)
-            hasEps = present(epsilon)
             hasCrd = present(coordsList)
             hasRad = present(radii)
-            dim    = this%dim
-            if (.not.hasRad) then; sizeRad=0; else; sizeRad=size(radii);        end if
-            if (.not.hasCrd) then; sizeCrd=0; else; sizeCrd=size(coordsList,2); end if
-            if (.not.hasCrd) then; sizeDim=0; else; sizeDim=size(coordsList,1); end if
-            if (.not.hasIds) then; sizeIds=0; else; sizeIds=size(ids);          end if
-
-            ! assertion checks
-            if (.not. isInit) then
-                error stop "rmvNodes: tree uninitialized (call this%build() first?)"
-            else if (hasRad .and. .not. hasCrd) then
-                error stop "rmvNodes: radii must be supplied with a list of coordinates"
-            else if (hasRad .and. sizeRad .ne. sizeCrd) then
-                error stop "rmvNodes: number of radii must match number of coordinates"
-            else if (hasCrd .and. ((sizeDim .eq. 0) .or. (sizeCrd .eq. 0))) then
-                error stop "rmvNodes: coordsList is empty"
-            else if (hasCrd .and. (sizeDim .ne. dim)) then
-                error stop "rmvNodes: dimension of coordinates must match dimension of tree"
-            else if (hasIds .and. (sizeIds .eq. 0)) then
-                error stop "rmvNodes: ids is empty"
-            else if (.not. (hasIds .or. hasCrd)) then
-                error stop "rmvNodes: must supply ids or coordsList"
-            else if (hasCrd .and. hasIds .and. (.not. hasRad) .and. (sizeCrd .ne. sizeIds)) then
-                error stop "rmvNodes: when coordsList and ids are passed without radii, sizes must match"
-            end if
-            if (present(bufferSize)) then
-                if (bufferSize .le. 0) then
-                    error stop "rmvNodes: invalid bufferSize"
-                else
-                    buffSze = bufferSize
-                end if
-            else
-                buffSze = DEFAULT_BUFFER_SIZE
-            end if
-
-            if (.not. present(metric)) then
-                mtr = DEFAULT_METRIC
-            else
-                select case (metric)
-                    case ('euclidean'); mtr = 'euclidean'
-                    case ('manhattan'); mtr = 'manhattan'
-                    case ('chebyshev'); mtr = 'chebyshev'
-                    case default;       error stop "rmvNodes: unknown metric"
-                end select
-            end if
 
             ! search + compaction serialized together: the search reads this%nodePool,
             ! which another thread's critical section can deallocate and replace.

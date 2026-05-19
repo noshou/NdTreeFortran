@@ -96,8 +96,10 @@ module NdTreeFortran
             procedure(build),        deferred          :: build
             procedure(buildSubtree), deferred, private :: buildSubtree
             procedure(rNN),          deferred, private :: rNN
-            procedure(addNodes),     deferred          :: addNodes
-            procedure(rmvNodes),     deferred          :: rmvNodes   
+            procedure                                  :: addNodes
+            procedure                                  :: rmvNodes
+            procedure(addNodesImpl), deferred, private :: addNodesImpl
+            procedure(rmvNodesImpl), deferred, private :: rmvNodesImpl
             !..........................................................!
 
             !...................................!
@@ -145,12 +147,25 @@ module NdTreeFortran
             procedure :: buildSubtree => buildSubtreeKDT
             procedure :: rNN          => rNN_KDT
             procedure :: printTree    => printKdTree
-            procedure :: rmvNodes     => rmvNodesKDT
-            procedure :: addNodes     => addNodesKDT
+            procedure :: rmvNodesImpl => rmvNodesKDT
+            procedure :: addNodesImpl => addNodesKDT
             procedure :: saxs
             procedure :: getSplitAxis
             final     :: finalizerKDT
     end type KdTree
+
+    ! !> A Ball Tree
+    ! type, extends(NdTree) :: BallTree
+    !     contains 
+    !         procedure :: build        => buildBLT
+    !         procedure :: buildSubtree => buildSubtreeBLT
+    !         procedure :: rNN          => rNN_BLT
+    !         procedure :: rmvNodesImpl => rmvNodesBLT
+    !         procedure :: addNodesImpl => addNodesBLT
+    !         procedure :: getBallRadii 
+    !         procedure :: ballRadius  
+    !         final     :: finalizerBLT
+    ! end type BallTree
 
     abstract interface 
 
@@ -234,100 +249,34 @@ module NdTreeFortran
         end subroutine rNN 
         
 
-        !> Inserts new nodes into the tree.
-        !!
-        !! coordsList is a (k, n) array of n points in k dimensions;
-        !! k must match the dimension of the tree.
-        !! If the tree holds data, dataList must be provided and have
-        !! exactly n elements of the same type as the existing data.
-        !! New nodes are appended to the pool then either inserted at leaves
-        !! or trigger a full rebuild if modifications exceed rebuildRatio * pop.
-        !!
-        !! Thread safety: concurrent calls to addNodes() are serialized internally
-        !! via !$OMP CRITICAL. The precondition checks (before the critical section)
-        !! are NOT thread-safe; callers must ensure the tree is initialized and
-        !! stable before calling.
-        !!
-        !! @param[in] coordsList  (k, n) array of coordinates to add
-        !! @param[in] dataList    optional rank-1 array of n data values
-        subroutine addNodes(this, coordsList, dataList)
+        !> Tree specific implementation of addNodes, called after validation by NdTree
+        subroutine addNodesImpl(this, coordsList, dataList)
             import :: NodeId, NdTree, NdNode, NdNodePtr, real64, int64
             class(NdTree),intent(inout)        :: this
             real(real64), intent(in)           :: coordsList(:,:)
             class(*),     intent(in), optional :: dataList(:)
-        end subroutine addNodes
+        end subroutine addNodesImpl
 
-        !> Removes nodes from the tree according to one or more optional filters.
-        !!
-        !!  - coordsList alone:
-        !!      removes nodes whose coordinates match coordsList(:,i) for some i,
-        !!      within tolerance epsilon.
-        !!
-        !!  - coordsList + radii:
-        !!      removes all nodes within radii(i) of coordsList(:,i), for each i.
-        !!
-        !!  - ids alone:
-        !!      removes all nodes whose id appears anywhere in ids.
-        !!      Uses pool_idx for O(1) fast path; falls back to O(n) scan if stale.
-        !!
-        !!  - coordsList + ids (no radii):
-        !!      ids and coordsList are treated as paired: removes nodes where
-        !!      node%id == ids(i) AND node%coords match coordsList(:,i),
-        !!      for each i. Requires size(ids) == size(coordsList, 2).
-        !!
-        !!  - coordsList + radii + ids:
-        !!      removes nodes within radii(i) of coordsList(:,i) whose id also
-        !!      appears anywhere in ids (ids treated as an unordered set).
-        !!      ids and coordsList need not be the same size.
-        !!
-        !! Preconditions:
-        !!
-        !!  - whenever coordsList is passed:
-        !!      (size(coordsList, 1) == this%dim) && (size(coordsList, 2) >= 1)
-        !!  - whenever radii is passed:
-        !!      coordsList must also be passed &&
-        !!      (size(radii) == size(coordsList, 2))
-        !!  - ids passed alone or with coordsList + radii:
-        !!      ids is not empty; no size constraint relative to coordsList
-        !!  - coordsList + ids (no radii):
-        !!      ids is not empty && (size(ids) == size(coordsList, 2))
-        !!
-        !! @param[in] coordsList  (dim, n) array of target coordinates
-        !! @param[in] radii       n radii paired with coordsList columns;
-        !!                        if omitted, matching uses epsilon tolerance
-        !! @param[in] ids         NodeIds to filter by (obtain via getNodeId());
-        !!                        paired with coordsList when radii is absent, treated as a set otherwise
-        !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
-        !!                        used only when radii is absent
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
-        !! @param[in] bufferSize  initial match-list capacity before reallocation
-        !!                        (default DEFAULT_BUFFER_SIZE)
-        !!
-        !! @return    numRmv      total number of nodes removed
-        !!
-        !! Thread safety: the search phase is read-only and executes outside the
-        !! critical section; concurrent reads are safe. Pool compaction and rebuild
-        !! are serialized via !$OMP CRITICAL (tree_mutate). Callers must ensure the
-        !! tree is initialized and stable before calling.
-        function rmvNodes( &
-            this,                 &
-            coordsList,           &
-            radii,                &
-            ids,                  &
-            epsilon,              &
-            metric,               &
-            bufferSize            &
+        !> Tree specific implementation of rmvNodes, called after validation by NdTree
+        function rmvNodesImpl( &
+            this,              &
+            coordsList,        &
+            radii,             &
+            ids,               &
+            epsilon,           &
+            metric,            &
+            bufferSize         &
         ) result(numRmv)
             import :: NodeId, NdTree, NdNode, NdNodePtr, real64
             class(NdTree),    intent(inout)        :: this
-            real(real64),     intent(in), optional :: radii(:)
             real(real64),     intent(in), optional :: coordsList(:,:)
+            real(real64),     intent(in), optional :: radii(:)
             type(NodeId),     intent(in), optional :: ids(:)
             real(real64),     intent(in), optional :: epsilon
-            character(len=*), intent(in), optional :: metric
-            integer,          intent(in), optional :: bufferSize
+            character(len=9), intent(in)           :: metric
+            integer,          intent(in)           :: bufferSize
             integer                                :: numRmv
-        end function rmvNodes
+        end function rmvNodesImpl
     end interface
 
     interface
@@ -474,7 +423,7 @@ module NdTreeFortran
 
         !===================================== NdTree Type =====================================!
 
-        !========================== NdTreeGetters.f90 ==========================!
+        !========================== ndtree/NdTreeGetters.f90 ==========================!
 
         !> Returns the NodeId of every node currently in the pool, in pool order.
         !! Each NodeId has pool_idx set to the node's current position, so
@@ -553,7 +502,7 @@ module NdTreeFortran
 
         !=======================================================================!
         
-        !============================ NdTreeUtils.f90 ============================!
+        !============================ ndtree/NdTreeUtils.f90 ============================!
 
         !> Compares tree%printTree output against expected as a sorted
         !! multiset of coord-tuples (indent and `[axis=N]` prefix stripped).
@@ -617,7 +566,104 @@ module NdTreeFortran
 
         !=========================================================================!
 
-        !=========================== search_modules/NdTreeDBSCAN.f90 ===========================!
+        !============================ ndtree/NdTreeModders.f90 ============================!
+
+        !> Inserts new nodes into the tree.
+        !!
+        !! coordsList is a (k, n) array of n points in k dimensions;
+        !! k must match the dimension of the tree.
+        !! If the tree holds data, dataList must be provided and have
+        !! exactly n elements of the same type as the existing data.
+        !! New nodes are appended to the pool then either inserted at leaves
+        !! or trigger a full rebuild if modifications exceed rebuildRatio * pop.
+        !!
+        !! Thread safety: concurrent calls to addNodes() are serialized internally
+        !! via !$OMP CRITICAL. The precondition checks (before the critical section)
+        !! are NOT thread-safe; callers must ensure the tree is initialized and
+        !! stable before calling.
+        !!
+        !! @param[in] coordsList  (k, n) array of coordinates to add
+        !! @param[in] dataList    optional rank-1 array of n data values
+        module subroutine addNodes(this, coordsList, dataList)
+            class(NdTree), intent(inout)        :: this
+            real(real64),  intent(in)           :: coordsList(:,:)
+            class(*),      intent(in), optional :: dataList(:)
+        end subroutine addNodes
+
+        !> Removes nodes from the tree according to one or more optional filters.
+        !!
+        !!  - coordsList alone:
+        !!      removes nodes whose coordinates match coordsList(:,i) for some i,
+        !!      within tolerance epsilon.
+        !!
+        !!  - coordsList + radii:
+        !!      removes all nodes within radii(i) of coordsList(:,i), for each i.
+        !!
+        !!  - ids alone:
+        !!      removes all nodes whose id appears anywhere in ids.
+        !!      Uses pool_idx for O(1) fast path; falls back to O(n) scan if stale.
+        !!
+        !!  - coordsList + ids (no radii):
+        !!      ids and coordsList are treated as paired: removes nodes where
+        !!      node%id == ids(i) AND node%coords match coordsList(:,i),
+        !!      for each i. Requires size(ids) == size(coordsList, 2).
+        !!
+        !!  - coordsList + radii + ids:
+        !!      removes nodes within radii(i) of coordsList(:,i) whose id also
+        !!      appears anywhere in ids (ids treated as an unordered set).
+        !!      ids and coordsList need not be the same size.
+        !!
+        !! Preconditions:
+        !!
+        !!  - whenever coordsList is passed:
+        !!      (size(coordsList, 1) == this%dim) && (size(coordsList, 2) >= 1)
+        !!  - whenever radii is passed:
+        !!      coordsList must also be passed &&
+        !!      (size(radii) == size(coordsList, 2))
+        !!  - ids passed alone or with coordsList + radii:
+        !!      ids is not empty; no size constraint relative to coordsList
+        !!  - coordsList + ids (no radii):
+        !!      ids is not empty && (size(ids) == size(coordsList, 2))
+        !!
+        !! @param[in] coordsList  (dim, n) array of target coordinates
+        !! @param[in] radii       n radii paired with coordsList columns;
+        !!                        if omitted, matching uses epsilon tolerance
+        !! @param[in] ids         NodeIds to filter by (obtain via getNodeId());
+        !!                        paired with coordsList when radii is absent, treated as a set otherwise
+        !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
+        !!                        used only when radii is absent
+        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param[in] bufferSize  initial match-list capacity before reallocation
+        !!                        (default DEFAULT_BUFFER_SIZE)
+        !!
+        !! @return    numRmv      total number of nodes removed
+        !!
+        !! Thread safety: the search phase is read-only and executes outside the
+        !! critical section; concurrent reads are safe. Pool compaction and rebuild
+        !! are serialized via !$OMP CRITICAL (tree_mutate). Callers must ensure the
+        !! tree is initialized and stable before calling.
+        module function rmvNodes( &
+            this,                 &
+            coordsList,           &
+            radii,                &
+            ids,                  &
+            epsilon,              &
+            metric,               &
+            bufferSize            &
+        ) result(numRmv)
+            class(NdTree),    intent(inout)        :: this
+            real(real64),     intent(in), optional :: coordsList(:,:)
+            real(real64),     intent(in), optional :: radii(:)
+            type(NodeId),     intent(in), optional :: ids(:)
+            real(real64),     intent(in), optional :: epsilon
+            character(len=*), intent(in), optional :: metric
+            integer,          intent(in), optional :: bufferSize
+            integer                                :: numRmv
+        end function rmvNodes
+
+        !==========================================================================!
+
+        !=========================== ndtree/search_modules/NdTreeDBSCAN.f90 ===========================!
 
         !> Density-based spatial clustering (DBSCAN).
         !!
@@ -641,7 +687,7 @@ module NdTreeFortran
         end function DBSCAN
         !=======================================================================================!
         
-        !================= search_modules/NdTreeLinScan.f90 =================!
+        !================= ndtree/search_modules/NdTreeLinScan.f90 =================!
 
         !> Looks up nodes by NodeId, using pool_idx for an O(1) fast path.
         !! Falls back to O(n) scan only when the pool_idx hint is stale.
@@ -659,7 +705,7 @@ module NdTreeFortran
 
         !====================================================================!
 
-        !======================= search_modules/NdTreeRnn.f90  ================================!
+        !======================= ndtree/search_modules/NdTreeRnn.f90  ================================!
 
         !> Performs radius nearest neighbour search on a centroid
         !!
@@ -951,80 +997,12 @@ module NdTreeFortran
 
         !================================== kdtree/KdTreeModders.f90  ==================================!
 
-        !> Inserts new nodes into the tree.
-        !!
-        !! coordsList is a (k, n) array of n points in k dimensions;
-        !! k must match the dimension of the tree.
-        !! If the tree holds data, dataList must be provided and have
-        !! exactly n elements of the same type as the existing data.
-        !! New nodes are appended to the pool then either inserted at leaves
-        !! or trigger a full rebuild if modifications exceed rebuildRatio * pop.
-        !!
-        !! Thread safety: concurrent calls to addNodes() are serialized internally
-        !! via !$OMP CRITICAL. The precondition checks (before the critical section)
-        !! are NOT thread-safe; callers must ensure the tree is initialized and
-        !! stable before calling.
-        !!
-        !! @param[in] coordsList  (k, n) array of coordinates to add
-        !! @param[in] dataList    optional rank-1 array of n data values
         module subroutine addNodesKDT(this, coordsList, dataList)
             class(KdTree),intent(inout)        :: this
             real(real64), intent(in)           :: coordsList(:,:)
             class(*),     intent(in), optional :: dataList(:)
         end subroutine addNodesKDT
 
-        !> Removes nodes from the tree according to one or more optional filters.
-        !!
-        !!  - coordsList alone:
-        !!      removes nodes whose coordinates match coordsList(:,i) for some i,
-        !!      within tolerance epsilon.
-        !!
-        !!  - coordsList + radii:
-        !!      removes all nodes within radii(i) of coordsList(:,i), for each i.
-        !!
-        !!  - ids alone:
-        !!      removes all nodes whose id appears anywhere in ids.
-        !!      Uses pool_idx for O(1) fast path; falls back to O(n) scan if stale.
-        !!
-        !!  - coordsList + ids (no radii):
-        !!      ids and coordsList are treated as paired: removes nodes where
-        !!      node%id == ids(i) AND node%coords match coordsList(:,i),
-        !!      for each i. Requires size(ids) == size(coordsList, 2).
-        !!
-        !!  - coordsList + radii + ids:
-        !!      removes nodes within radii(i) of coordsList(:,i) whose id also
-        !!      appears anywhere in ids (ids treated as an unordered set).
-        !!      ids and coordsList need not be the same size.
-        !!
-        !! Preconditions:
-        !!
-        !!  - whenever coordsList is passed:
-        !!      (size(coordsList, 1) == this%dim) && (size(coordsList, 2) >= 1)
-        !!  - whenever radii is passed:
-        !!      coordsList must also be passed &&
-        !!      (size(radii) == size(coordsList, 2))
-        !!  - ids passed alone or with coordsList + radii:
-        !!      ids is not empty; no size constraint relative to coordsList
-        !!  - coordsList + ids (no radii):
-        !!      ids is not empty && (size(ids) == size(coordsList, 2))
-        !!
-        !! @param[in] coordsList  (dim, n) array of target coordinates
-        !! @param[in] radii       n radii paired with coordsList columns;
-        !!                        if omitted, matching uses epsilon tolerance
-        !! @param[in] ids         NodeIds to filter by (obtain via getNodeId());
-        !!                        paired with coordsList when radii is absent, treated as a set otherwise
-        !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
-        !!                        used only when radii is absent
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
-        !! @param[in] bufferSize  initial match-list capacity before reallocation
-        !!                        (default DEFAULT_BUFFER_SIZE)
-        !!
-        !! @return    numRmv      total number of nodes removed
-        !!
-        !! Thread safety: the search phase is read-only and executes outside the
-        !! critical section; concurrent reads are safe. Pool compaction and rebuild
-        !! are serialized via !$OMP CRITICAL (tree_mutate). Callers must ensure the
-        !! tree is initialized and stable before calling.
         module function rmvNodesKDT( &
             this,                    &
             coordsList,              &
@@ -1035,12 +1013,12 @@ module NdTreeFortran
             bufferSize               &
         ) result(numRmv)
             class(KdTree),    intent(inout)        :: this
-            real(real64),     intent(in), optional :: radii(:)
             real(real64),     intent(in), optional :: coordsList(:,:)
+            real(real64),     intent(in), optional :: radii(:)
             type(NodeId),     intent(in), optional :: ids(:)
             real(real64),     intent(in), optional :: epsilon
-            character(len=*), intent(in), optional :: metric
-            integer,          intent(in), optional :: bufferSize
+            character(len=9), intent(in)           :: metric
+            integer,          intent(in)           :: bufferSize
             integer                                :: numRmv
         end function rmvNodesKDT
         
