@@ -5,7 +5,7 @@ module NdTreeFortran
     implicit none
     private
     public                  :: NdNode, NdNodePtr, NdNodeBucket, NodeId
-    public                  :: NdTree, KdTree
+    public                  :: NdTree, KdTree, BallTree
     public                  :: DEFAULT_BUFFER_SIZE, DEFAULT_METRIC, DEFAULT_EPSILON
     integer(int64), save    :: nextTreeId = 0_int64
 
@@ -93,7 +93,7 @@ module NdTreeFortran
             !..........................................................!
             !.................... abstract methods ....................!
             procedure(printTree),    deferred          :: printTree
-            procedure(build),        deferred          :: build
+            procedure                                  :: build
             procedure(buildSubtree), deferred, private :: buildSubtree
             procedure(rNN),          deferred, private :: rNN
             procedure                                  :: addNodes
@@ -142,8 +142,8 @@ module NdTreeFortran
 
     !> A KdTree
     type, extends(NdTree) :: KdTree
-        contains 
-            procedure :: build        => buildKDT
+
+        contains
             procedure :: buildSubtree => buildSubtreeKDT
             procedure :: rNN          => rNN_KDT
             procedure :: printTree    => printKdTree
@@ -154,18 +154,23 @@ module NdTreeFortran
             final     :: finalizerKDT
     end type KdTree
 
-    ! !> A Ball Tree
-    ! type, extends(NdTree) :: BallTree
-    !     contains 
-    !         procedure :: build        => buildBLT
-    !         procedure :: buildSubtree => buildSubtreeBLT
-    !         procedure :: rNN          => rNN_BLT
-    !         procedure :: rmvNodesImpl => rmvNodesBLT
-    !         procedure :: addNodesImpl => addNodesBLT
-    !         procedure :: getBallRadii 
-    !         procedure :: ballRadius  
-    !         final     :: finalizerBLT
-    ! end type BallTree
+    !> A Ball Tree
+    type, extends(NdTree) :: BallTree
+
+        !> Metric for the ball tree; used for construction + searches 
+        character(len=9), private  :: metric = DEFAULT_METRIC
+
+        contains 
+            procedure :: buildSubtree => buildSubtreeBLT
+            procedure :: rNN          => rNN_BLT
+            procedure :: rmvNodesImpl => rmvNodesBLT
+            procedure :: addNodesImpl => addNodesBLT
+            procedure :: printTree    => printBallTree
+            procedure :: getMetric    => getMetricBLT
+            procedure :: setMetric    => setMetricBLT
+            procedure :: ballRadius  
+            final     :: finalizerBLT
+    end type BallTree
 
     abstract interface 
 
@@ -177,24 +182,6 @@ module NdTreeFortran
             integer,       intent(in), optional :: unit
         end subroutine printTree
         
-        !> Builds a balanced Kd-Tree from a set of points.
-        !! @param[in] coords       A (k, n) array where n is the number of points
-        !!                         and k is the dimensionality of the splitting axes.
-        !! @param[in] data         (Optional) A rank-1 array of size n, where each
-        !!                         element is the data associated with a point in coords.
-        !!                         The element type determines what select type cases the
-        !!                         caller must handle when calling getData() on a result node.
-        !! @param[in] rebuildRatio If this%modifications > this%rebuildRatio * this%pop,
-        !!                         then a tree rebuild is triggered. Defaulted to 0.25.
-        subroutine build(this, coords, data, rebuildRatio)
-            import :: NodeId, NdTree, NdNode, NdNodePtr, real64, int64
-            class(NdTree),     intent(inout)        :: this
-            real(kind=real64), intent(in)           :: coords(:,:)
-            class(*),          intent(in), optional :: data(:)
-            real(kind=real64), intent(in), optional :: rebuildRatio
-        end subroutine build
-
-
         !> Recursively builds a balanced subtree from the node pool.
         !! @param[inout] this      the tree being built
         !! @param[out]   root      index of the root of the tree
@@ -211,10 +198,11 @@ module NdTreeFortran
             upperIdx                       &
         )
             import :: NodeId, NdTree, NdNode, NdNodePtr, real64, int64
-            class(NdTree),   intent(inout) :: this
-            integer(int64), intent(out)    :: rootIdx
-            integer(int64), intent(inout)  :: indices(:)
-            integer(int64), intent(in)     :: lowerIdx, upperIdx, depth
+            class(NdTree),   intent(inout)        :: this
+            integer(int64),  intent(out)          :: rootIdx
+            integer(int64),  intent(inout)        :: indices(:)
+            integer(int64),  intent(in)           :: lowerIdx, upperIdx
+            integer(int64),  intent(in), optional :: depth
         end subroutine buildSubtree
 
         !> Radius Nearest Neighbour search.
@@ -566,11 +554,36 @@ module NdTreeFortran
 
         !=========================================================================!
 
+        !============================ ndtree/NdTreeBuild.f90 ============================!
+
+        !> Builds a tree from a set of points.
+        !!
+        !! Allocates the node pool, assigns coordinates and (optionally) data,
+        !! stamps each node with a stable NodeId, then calls the tree-type-specific
+        !! buildSubtree to partition the pool into its search structure.
+        !!
+        !! @param[in] coords       A (d, n) array where n is the number of points
+        !!                         and d is the dimensionality (number of axis per coord).
+        !! @param[in] data         (Optional) A rank-1 array of size n, where each
+        !!                         element is the data associated with a point in coords.
+        !!                         The element type determines what select type cases the
+        !!                         caller must handle when calling getData() on a result node.
+        !! @param[in] rebuildRatio If this%modifications > this%rebuildRatio * this%pop,
+        !!                         then a tree rebuild is triggered. Defaulted to 0.25.
+        module subroutine build(this, coords, data, rebuildRatio)
+            class(NdTree),     intent(inout)        :: this
+            real(kind=real64), intent(in)           :: coords(:,:)
+            class(*),          intent(in), optional :: data(:)
+            real(kind=real64), intent(in), optional :: rebuildRatio
+        end subroutine build
+
+        !=================================================================================!
+
         !============================ ndtree/NdTreeModders.f90 ============================!
 
         !> Inserts new nodes into the tree.
         !!
-        !! coordsList is a (k, n) array of n points in k dimensions;
+        !! coordsList is a (d, n) array of n points in d dimensions;
         !! k must match the dimension of the tree.
         !! If the tree holds data, dataList must be provided and have
         !! exactly n elements of the same type as the existing data.
@@ -582,7 +595,7 @@ module NdTreeFortran
         !! are NOT thread-safe; callers must ensure the tree is initialized and
         !! stable before calling.
         !!
-        !! @param[in] coordsList  (k, n) array of coordinates to add
+        !! @param[in] coordsList  (d, n) array of coordinates to add
         !! @param[in] dataList    optional rank-1 array of n data values
         module subroutine addNodes(this, coordsList, dataList)
             class(NdTree), intent(inout)        :: this
@@ -632,7 +645,8 @@ module NdTreeFortran
         !!                        paired with coordsList when radii is absent, treated as a set otherwise
         !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
         !!                        used only when radii is absent
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                        Ignored for ball trees.
         !! @param[in] bufferSize  initial match-list capacity before reallocation
         !!                        (default DEFAULT_BUFFER_SIZE)
         !!
@@ -671,11 +685,12 @@ module NdTreeFortran
         !!
         !! @param[in] minPts      minimum neighbourhood size to classify a point as a core point.
         !! @param[in] radius      neighbourhood search radius (eps)
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                        Ignored for ball trees.
         !! @param[in] bufferSize  initial rNN result buffer size; default DEFAULT_BUFFER_SIZE
         !!
-        !! @return res  array of NdNodeBucket; res(1:n-1) contains buckets for each cluster,
-        !!                       res(n) contains "noise". If tree is empty, 
+        !! @return res  array of NdNodeBucket; res(1:size(res)-1) contains buckets for each cluster,
+        !!                       res(size(res)) contains "noise". If tree is empty, 
         !!                       then res will be empty.
         module function DBSCAN(this, minPts, radius, metric, bufferSize) result(res)
             class(NdTree),      intent(in)           :: this
@@ -714,7 +729,8 @@ module NdTreeFortran
         !! @param[in] radius      the search radius; error stop if negative
         !! @param[in] bufferSize  initial result buffer size; doubles when full; 
         !!                        default DEFAULT_BUFFER_SIZE; error stop if <= 0
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                        Ignored for ball trees.
         !!
         !! @return list of nodes within the search radius
         module function rNN_Centroid( &
@@ -734,12 +750,13 @@ module NdTreeFortran
 
         !> Search the tree for nodes matching a set of query coordinates.
         !!
-        !! coords(:,:) is laid out as (ndim, nQuery), one column per query point.
-        !! Returns a parallel array res(nQuery) of NdNodeBucket; res(i) holds all
+        !! coords(:,:) is laid out as (d, n), one column per query point.
+        !! Returns a parallel array res(n) of NdNodeBucket; res(i) holds all
         !! nodes within epsilon of coords(:,i). If no match is found for query i,
         !! res(i) is empty (size 0).
         !!
-        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                   Ignored for ball trees.
         !! @param epsilon    match radius; default DEFAULT_EPSILON
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
@@ -762,13 +779,14 @@ module NdTreeFortran
 
         !> Search the tree for nodes matching both a coordinate and a node id.
         !!
-        !! coords(:,:) is laid out as (ndim, nQuery); ids(nQuery) is a parallel
+        !! coords(:,:) is laid out as (d, n); ids(n) is a parallel
         !! array of target node ids. For each query i, the search first collects
         !! all nodes within epsilon of coords(:,i), then filters to those whose
-        !! id equals ids(i). Returns a parallel array res(nQuery) of NdNodeBucket;
+        !! id equals ids(i). Returns a parallel array res(n) of NdNodeBucket;
         !! res(i) is empty if no node satisfies both criteria.
         !!
-        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                   Ignored for ball trees.
         !! @param epsilon    match radius; default DEFAULT_EPSILON
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
@@ -800,7 +818,7 @@ module NdTreeFortran
         !! @param[in] bufferSize    initial result buffer size; doubles when full; 
         !!                           default DEFAULT_BUFFER_SIZE; error stop if <= 0
         !! @param[in] metric        'euclidean', 'manhattan', 'chebyshev'; 
-        !!                          default DEFAULT_METRIC
+        !!                          default DEFAULT_METRIC. Ignored for ball trees.
         !! @param[in] excludeTarget if .true., removes the target node from the returned list
         !!
         !! @return list of nodes within the search radius
@@ -823,11 +841,12 @@ module NdTreeFortran
 
         !> Search all nodes within radii(i) of coordsList(:,i), for each i.
         !!
-        !! coords(:,:) is laid out as (ndim, nQuery); radii(nQuery) is a parallel
-        !! list of radii to search for. Returns a parallel array res(nQuery) of NdNodeBucket;
+        !! coords(:,:) is laid out as (d, n); radii(n) is a parallel
+        !! list of radii to search for. Returns a parallel array res(n) of NdNodeBucket;
         !! res(i) is empty if no node satisfies criteria.
         !!
-        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
+        !!                   Ignored for ball trees.
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
         !!
@@ -850,20 +869,21 @@ module NdTreeFortran
         !! coordsList(:,i) whose id appears anywhere in ids.
         !! ids is treated as an unordered set and is not paired with coordsList.
         !!
-        !! coordsList is laid out as (ndim, nQuery); radii(nQuery) is a parallel
-        !! list of radii, one per query point. Returns a parallel array res(nQuery)
+        !! coordsList is laid out as (d, n); radii(n) is a parallel
+        !! list of radii, one per query point. Returns a parallel array res(n)
         !! of NdNodeBucket; res(i) is empty if no node satisfies the criteria
         !! for query point i.
         !!
-        !! @param[in] coordsList  (dim, nQuery) array of query coordinates
-        !! @param[in] radii       nQuery radii, paired with coordsList columns
+        !! @param[in] coordsList  (dim, n) array of query coordinates
+        !! @param[in] radii       n radii, paired with coordsList columns
         !! @param[in] ids         unordered set of NodeIds to filter by;
         !!                        not paired with coordsList; obtain via getNodeId()
-        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default 2 DEFAULT_METRIC
+        !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default 2 DEFAULT_METRIC.
+        !!                        Ignored for ball trees.
         !! @param[in] bufferSize  initial capacity of each bucket before reallocation; 
         !!                        default DEFAULT_BUFFER_SIZE
         !!
-        !! @return    res         res(nQuery) of NdNodeBucket; res(i) contains all
+        !! @return    res         res(n) of NdNodeBucket; res(i) contains all
         !!                        nodes within radii(i) of coordsList(:,i) whose id
         !!                        appears in ids; empty bucket if no match
         module function rNN_RadIds( &
@@ -954,23 +974,7 @@ module NdTreeFortran
             type(KdTree), intent(inout) :: this
         end subroutine finalizerKDT
 
-        !========= kdtree/KdTreeBuild.f90 =========! 
-
-        !> Builds a balanced Kd-Tree from a set of points.
-        !! @param[in] coords       A (k, n) array where n is the number of points
-        !!                         and k is the dimensionality of the splitting axes.
-        !! @param[in] data         (Optional) A rank-1 array of size n, where each
-        !!                         element is the data associated with a point in coords.
-        !!                         The element type determines what select type cases the
-        !!                         caller must handle when calling getData() on a result node.
-        !! @param[in] rebuildRatio If this%modifications > this%rebuildRatio * this%pop,
-        !!                         then a tree rebuild is triggered. Defaulted to 0.25.
-        module subroutine buildKDT(this, coords, data, rebuildRatio)
-            class(KdTree),     intent(inout)        :: this
-            real(kind=real64), intent(in)           :: coords(:,:)
-            class(*),          intent(in), optional :: data(:)
-            real(kind=real64), intent(in), optional :: rebuildRatio
-        end subroutine buildKDT
+        !========= kdtree/KdTreeBuild.f90 =========!
 
         !> Recursively builds a balanced subtree from the node pool.
         !! @param[inout] this      the tree being built
@@ -987,10 +991,11 @@ module NdTreeFortran
             lowerIdx,                                &
             upperIdx                                 &
         )
-            class(KdTree),   intent(inout) :: this
-            integer(int64), intent(out)    :: rootIdx
-            integer(int64), intent(inout)  :: indices(:)
-            integer(int64), intent(in)     :: lowerIdx, upperIdx, depth
+            class(KdTree),   intent(inout)        :: this
+            integer(int64),  intent(out)          :: rootIdx
+            integer(int64),  intent(inout)        :: indices(:)
+            integer(int64),  intent(in)           :: lowerIdx, upperIdx
+            integer(int64),  intent(in), optional :: depth
         end subroutine buildSubtreeKDT
 
         !====================================================================================!
@@ -1060,6 +1065,58 @@ module NdTreeFortran
 
         !===============================================================================================!
         !===============================================================================================!
+
+        !========= balltree/BallTreeBuild.f90 =========!
+
+        !> Recursively builds a balanced Ball-Tree subtree from the node pool.
+        !! @param[inout] this      the tree being built
+        !! @param[out]   rootIdx   index of the root of this subtree
+        !! @param[in]    depth     current recursion depth
+        !! @param[inout] indices   index permutation array, rearranged in-place
+        !! @param[in]    lowerIdx  lower bound of the index range for this subtree
+        !! @param[in]    upperIdx  upper bound of the index range for this subtree
+        recursive module subroutine buildSubtreeBLT( &
+            this,                                    &
+            rootIdx,                                 &
+            depth,                                   &
+            indices,                                 &
+            lowerIdx,                                &
+            upperIdx                                 &
+        )
+            class(BallTree), intent(inout)        :: this
+            integer(int64),  intent(out)          :: rootIdx
+            integer(int64),  intent(inout)        :: indices(:)
+            integer(int64),  intent(in)           :: lowerIdx, upperIdx
+            integer(int64),  intent(in), optional :: depth
+        end subroutine buildSubtreeBLT
+        module subroutine addNodesBLT(this, coordsList, dataList)
+            class(BallTree),intent(inout)        :: this
+            real(real64), intent(in)           :: coordsList(:,:)
+            class(*),     intent(in), optional :: dataList(:)
+        end subroutine addNodesBLT
+
+
+        !====================================================================================!
+
+        !> 
+        !! @return this%metric or 'not init' if tree is not initialized
+        module function getMetricBLT(this) result(metric)
+            class(BallTree), intent(in) :: this
+            character(len=9)            :: metric
+        end function getMetricBLT
+
+        !> Sets the metric for the ball tree. 
+        !! If tree is already initialized, throws error.
+        !! @param[in] metric 'euclidean', 'chebyshev', 'manhattan' 
+        !!                   default -> DEFAULT_METRIC
+        module subroutine setMetricBLT(this, metric)
+            class(BallTree),  intent(inout)        :: this
+            character(len=9), intent(in), optional :: metric
+        end subroutine setMetricBLT
+
+
+
+
 
     end interface
 

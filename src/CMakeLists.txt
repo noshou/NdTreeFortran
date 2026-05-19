@@ -4,6 +4,7 @@ add_library(ndtreefortran
 	ndnode/NdNodeGetters.f90
 	ndnode/NdNodeUtils.f90
 	ndtree/NdTreeGetters.f90
+	ndtree/NdTreeBuild.f90
 	ndtree/NdTreeModders.f90
 	ndtree/NdTreeUtils.f90
 	kdtree/KdTreeBuild.f90

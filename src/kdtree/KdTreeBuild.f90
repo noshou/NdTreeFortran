@@ -1,69 +1,12 @@
 submodule(NdTreeFortran) KdTreeBuild
-    implicit none 
-    contains 
-        module procedure buildKDT
-
-            integer(int64), allocatable :: indices(:)
-            integer(int64)              :: i, id
-
-            if (this%initialized) error stop "build: tree is already initialized (call destroy first)"
-
-            ! initialize dimension and population size
-            this%dim = size(coords, 1)
-            this%pop = size(coords, 2) 
-
-            ! ensure number of data points is equal to number of coordinates 
-            if (present(data)) then
-                if ((size(data) .ne. this%pop) .and. (size(data) .ne. 0_int64)) then 
-                    error stop "data array length must equal number of points"
-                end if 
-            end if
-
-            ! initialize node pool 
-            !! NOTE: THIS IS NOT MULTITHREAD SAFE
-            allocate(this%nodePool(this%pop))
-            do i = 1, this%pop
-                allocate(this%nodePool(i)%coords(this%dim))
-                this%nodePool(i)%coords(:) = coords(:, i)
-                if ((present(data)) .and. (size(data) .ne. 0_int64)) then
-                    allocate(this%nodePool(i)%data, source=data(i))
-                    this%nodePool(i)%hasData = .true.
-                end if
-                this%currNodeId                   = this%currNodeId + 1_int64
-                this%nodePool(i)%nodeId%node_id  = this%currNodeId
-                this%nodePool(i)%nodeId%pool_idx = i
-            end do
-
-            ! allocate indices; that way we don't have to modify the list of nodes
-            allocate(indices(this%pop))
-            indices = [(i, i=1_int64, this%pop)]
-
-            ! initialize tree id 
-            ! must use: -fopenmp for gfortran or -qopenmp for ifort for thread saftey
-            
-            if (nextTreeId .eq. huge(nextTreeId)) error stop "build: treeID overflow! (how the f**k did you get this \[^_^]/)"
-            
-            !$OMP ATOMIC CAPTURE
-            nextTreeId = nextTreeId + 1_int64
-            id = nextTreeId
-            !$OMP END ATOMIC
-            this%treeId = id
-
-            ! build tree
-            call this%buildSubtree(this%rootIdx, 0_int64, indices, 1_int64, this%pop)
-
-            deallocate(indices)
-            
-            if (present(rebuildRatio)) then 
-                call this%setRebuildRatio(rebuildRatio)
-            end if            
-            this%initialized = .true.
-
-        end procedure buildKDT
-
+    implicit none
+    contains
         module procedure buildSubtreeKdt
 
             integer(int64) :: axis, median, middleBounds(2), targetIdx
+
+            ! depth is required for KdTree: it drives the axis-cycling split rule
+            if (.not. present(depth)) error stop "buildSubtreeKDT: depth is required"
 
             ! base case: we are at a leaf (or tree is empty)
             if (lowerIdx > upperIdx) then
@@ -86,8 +29,8 @@ submodule(NdTreeFortran) KdTreeBuild
                 this%nodePool(rootIdx)%nodeParams(1) = real(axis, real64)
                 this%nodePool(rootIdx)%children(:)   = 0_int64
                 this%nodePool(rootIdx)%treeId        = this%treeId
-                call this%buildSubtree(this%nodePool(rootIdx)%children(1), depth+1_int64, indices, lowerIdx, median-1_int64)
-                call this%buildSubtree(this%nodePool(rootIdx)%children(2), depth+1_int64, indices, median+1_int64, upperIdx)
+                call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx, median-1_int64, depth=depth+1_int64)
+                call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, median+1_int64, upperIdx,    depth=depth+1_int64)
             end if
 
         end procedure buildSubtreeKdt
@@ -115,7 +58,7 @@ submodule(NdTreeFortran) KdTreeBuild
             targetIdx                   &
             ) result(median)
             
-            type(NdNode), intent(in)          :: nodes(:)
+            type(NdNode), intent(in)        :: nodes(:)
             integer(int64), intent(inout)   :: indices(:)
             integer(int64), intent(in)      :: lowerIdx, upperIdx, axis, targetIdx
             integer(int64), intent(inout)   :: middleBounds(2)
@@ -167,30 +110,33 @@ submodule(NdTreeFortran) KdTreeBuild
 
         !> Three-way partition of indices(lowerIdx:upperIdx) around pivot
         !! On exit, the subarray is split into three contiguous regions
+        !!
         !!  [ lowerIdx ... middleBounds(1)-1 | middleBounds(1) ... middleBounds(2) | middleBounds(2)+1 ... upperIdx ]
+        !!
         !!  [ < pivot .......................| = pivot ............................| > pivot .......................]
-        !! @param[in] nodes             array of kd-tree nodes
-        !! @param[inout] indices        index permutation array, modified in-place
-        !! @param[in] lowerIdx          lower bound of the subarray to partition
-        !! @param[in] upperIdx          upper bound of the subarray to partition
-        !! @param[inout] middleBounds   on exit: (1) first index of equal region, (2) last index
-        !! @param[in] axis              coordinate axis to compare on
-        !! @param[in] pivot             pivot value
-        recursive subroutine quickSelectPartition(  &
-            nodes,                                  & 
-            indices,                                &
-            lowerIdx,                               &
-            upperIdx,                               &
-            middleBounds,                           &
-            axis,                                   &
-            pivot                                   &
+        !!
+        !! @param[in]    nodes        array of nodes
+        !! @param[inout] indices      index permutation array, modified in-place
+        !! @param[in]    lowerIdx     lower bound of the subarray to partition
+        !! @param[in]    upperIdx     upper bound of the subarray to partition
+        !! @param[inout] middleBounds on exit: (1) first index of equal region, (2) last index
+        !! @param[in]    axis         coordinate axis to compare on
+        !! @param[in]    pivot        pivot value
+        subroutine quickSelectPartition( &
+            nodes,                       & 
+            indices,                     &
+            lowerIdx,                    &
+            upperIdx,                    &
+            middleBounds,                &
+            axis,                        &
+            pivot                        &
             )
 
-            type(NdNode), intent(in)         :: nodes(:)
-            integer(int64), intent(inout)  :: indices(:), middleBounds(2)
-            integer(int64), intent(in)     :: lowerIdx, upperIdx, axis
-            integer(int64)                 :: i, tmp, lowerMiddleIdx, upperMiddleIdx
-            real(kind=real64), intent(in)  :: pivot
+            type(NdNode),      intent(in)    :: nodes(:)
+            integer(int64),    intent(inout) :: indices(:), middleBounds(2)
+            integer(int64),    intent(in)    :: lowerIdx, upperIdx, axis
+            integer(int64)                   :: i, tmp, lowerMiddleIdx, upperMiddleIdx
+            real(kind=real64), intent(in)    :: pivot
 
             i = lowerIdx
             lowerMiddleIdx = lowerIdx
@@ -216,6 +162,4 @@ submodule(NdTreeFortran) KdTreeBuild
             middleBounds(2) = upperMiddleIdx
 
         end subroutine quickSelectPartition
-
-
 end submodule KdTreeBuild
