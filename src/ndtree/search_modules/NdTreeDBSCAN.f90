@@ -24,16 +24,7 @@ submodule(NdTreeFortran) NdTreeDBSCAN
                 error stop "DBSCAN: invalid radius"
             end if
 
-            if (present(metric)) then 
-                select case (metric)
-                    case ('euclidean'); m = 'euclidean'
-                    case ('manhattan'); m = 'manhattan'
-                    case ('chebyshev'); m = 'chebyshev'
-                    case default;       error stop "DBSCAN: unknown metric"
-                end select 
-            else
-                m = DEFAULT_METRIC
-            end if
+            m = this%assertMetric('DBSCAN', metric)
 
             if (present(bufferSize)) then
                 if (bufferSize .le. 0) then

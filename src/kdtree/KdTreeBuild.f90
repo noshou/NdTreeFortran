@@ -29,8 +29,8 @@ submodule(NdTreeFortran) KdTreeBuild
                 this%nodePool(rootIdx)%nodeParams(1) = real(axis, real64)
                 this%nodePool(rootIdx)%children(:)   = 0_int64
                 this%nodePool(rootIdx)%treeId        = this%treeId
-                call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx, median-1_int64, depth=depth+1_int64)
-                call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, median+1_int64, upperIdx,    depth=depth+1_int64)
+                call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx,        median-1_int64, depth=depth+1_int64)
+                call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, median+1_int64, upperIdx,       depth=depth+1_int64)
             end if
 
         end procedure buildSubtreeKdt

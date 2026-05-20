@@ -40,5 +40,9 @@ submodule(NdTreeFortran) BallTreeUtils
                 radius = node%nodeParams(1)
             end if
         end procedure getBallRadius
+        
+        module procedure finalizerBLT
+            call this%destroy()
+        end procedure finalizerBLT
 
 end submodule BallTreeUtils

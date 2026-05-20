@@ -27,7 +27,7 @@ submodule(NdTreeFortran) NdTreeUtils
             indices = [(i, i=1_int64, this%pop)]
             this%rootIdx = 0_int64
 
-            call this%buildSubtree(this%rootIdx, 0_int64, indices, 1_int64, this%pop)
+            call this%buildSubtree(this%rootIdx, indices, 1_int64, this%pop, depth=0_int64)
 
             this%modifications = 0_int64
 
@@ -66,6 +66,35 @@ submodule(NdTreeFortran) NdTreeUtils
                 end if
             end do
         end procedure isMember
+
+        module procedure assertMetric
+
+            select type(this)
+                class is (BallTree)
+                    m = this%metric
+                    if (present(metric)) then
+                        if (m .ne. metric) then
+                            write (*,*) name, ": expected metric: ", m, " but got: ", metric
+                            stop 1
+                        end if
+                    end if
+                
+                class is (KdTree) 
+                    if (present(metric)) then 
+                        select case (metric)
+                            case ('euclidean'); m = 'euclidean'
+                            case ('manhattan'); m = 'manhattan'
+                            case ('chebyshev'); m = 'chebyshev'
+                            case default
+                                write (*,*) name, ": unkown metric: ", metric
+                                stop 1
+                        end select 
+                    else
+                        m = DEFAULT_METRIC
+                    end if
+            end select
+        end procedure assertMetric
+
 
         !> Strips leading zeros from exponent fields (e.g. E+001 -> E+1) for
         !! portable comparison across compilers with different exponent widths.

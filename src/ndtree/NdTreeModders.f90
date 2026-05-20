@@ -87,17 +87,7 @@ submodule(NdTreeFortran) NdTreeModders
                 buffSze = DEFAULT_BUFFER_SIZE
             end if
 
-            if (.not. present(metric)) then
-                mtr = DEFAULT_METRIC
-            else
-                select case (metric)
-                    case ('euclidean'); mtr = 'euclidean'
-                    case ('manhattan'); mtr = 'manhattan'
-                    case ('chebyshev'); mtr = 'chebyshev'
-                    case default;       error stop "rmvNodes: unknown metric"
-                end select
-            end if
-
+            mtr    = this%assertMetric('rmvNodes', metric)
             numRmv = this%rmvNodesImpl(coordsList, radii, ids, epsilon, mtr, buffSze)
 
         end procedure rmvNodes

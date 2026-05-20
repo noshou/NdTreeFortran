@@ -27,7 +27,11 @@ module NdTreeFortran
         integer(c_int64_t) :: pool_idx = 0
     end type NodeId
 
-    !> A node for a kd-tree
+    !> A node in an NdTree.
+    !! Allocatable components (coords, nodeParams, children, data) are automatically
+    !! freed by Fortran's intrinsic deallocation when the nodePool is deallocated.
+    !! If data holds a type with a finalizer, that finalizer will be called; if not,
+    !! the memory is still freed.
     type :: NdNode
         private
         logical                        :: hasData = .false. !> flagged true if node contains data
@@ -129,11 +133,12 @@ module NdTreeFortran
 
             !...................................!
             !........ utility functions ........!
-            procedure :: assert
-            procedure :: associatedNodePool
-            procedure :: associatedRoot
-            procedure :: destroy
-            procedure :: isMember
+            procedure          :: assert
+            procedure, private :: assertMetric
+            procedure          :: associatedNodePool
+            procedure          :: associatedRoot
+            procedure          :: destroy
+            procedure          :: isMember
             procedure, private :: rebuild
             procedure          :: setRebuildRatio
             !...................................!
@@ -192,10 +197,10 @@ module NdTreeFortran
         recursive subroutine buildSubtree( &
             this,                          &
             rootIdx,                       &
-            depth,                         &
             indices,                       &
             lowerIdx,                      &
-            upperIdx                       &
+            upperIdx,                      &
+            depth                          &
         )
             import :: NodeId, NdTree, NdNode, NdNodePtr, real64, int64
             class(NdTree),   intent(inout)        :: this
@@ -504,6 +509,21 @@ module NdTreeFortran
             character(len=*), intent(in) :: expected(:)
         end subroutine assert
 
+        !> Validates a metric string against the tree type and returns it.
+        !! For BallTree, errors if metric does not match the tree's built-in metric.
+        !! For KdTree, validates that metric is a known value ('euclidean', 'manhattan',
+        !! 'chebyshev') and returns DEFAULT_METRIC if absent.
+        !! @param[in] name   calling procedure name, used in error messages
+        !! @param[in] metric metric to validate
+        !!
+        !! @return            the validated metric string
+        module function assertMetric (this, name, metric) result(m)
+            class(NdTree),    intent(in)           :: this
+            character(len=*), intent(in)           :: name
+            character(len=9), intent(in), optional :: metric
+            character(len=9)                       :: m
+        end function assertMetric
+
         !> Sets assoc to true iff a nodePool is allocated.
         !! Should agree with associatedSubtree and !(this%initialized)
         !! @param[inout] assoc true if this%nodePool is allocated, 
@@ -521,7 +541,10 @@ module NdTreeFortran
             logical,          intent(inout) :: assoc
         end subroutine associatedRoot
 
-        !> Frees the node pool and resets tree state.
+        !> Frees the node pool and resets all tree state to defaults.
+        !! Deallocating the node pool automatically frees all allocatable components
+        !! of each NdNode (coords, nodeParams, children, data) via Fortran intrinsic
+        !! deallocation. If data holds a type with a finalizer, that finalizer is called.
         module subroutine destroy(this)
             class(NdTree), intent(inout) :: this
         end subroutine destroy
@@ -646,7 +669,7 @@ module NdTreeFortran
         !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
         !!                        used only when radii is absent
         !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                        Ignored for ball trees.
+        !!                        Throws errors if present and mismatches ball tree's metric
         !! @param[in] bufferSize  initial match-list capacity before reallocation
         !!                        (default DEFAULT_BUFFER_SIZE)
         !!
@@ -686,7 +709,7 @@ module NdTreeFortran
         !! @param[in] minPts      minimum neighbourhood size to classify a point as a core point.
         !! @param[in] radius      neighbourhood search radius (eps)
         !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                        Ignored for ball trees.
+        !!                        Throws errors if present and mismatches ball tree's metric
         !! @param[in] bufferSize  initial rNN result buffer size; default DEFAULT_BUFFER_SIZE
         !!
         !! @return res  array of NdNodeBucket; res(1:size(res)-1) contains buckets for each cluster,
@@ -730,7 +753,7 @@ module NdTreeFortran
         !! @param[in] bufferSize  initial result buffer size; doubles when full; 
         !!                        default DEFAULT_BUFFER_SIZE; error stop if <= 0
         !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                        Ignored for ball trees.
+        !!                        Throws errors if present and mismatches ball tree's metric
         !!
         !! @return list of nodes within the search radius
         module function rNN_Centroid( &
@@ -756,7 +779,7 @@ module NdTreeFortran
         !! res(i) is empty (size 0).
         !!
         !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                   Ignored for ball trees.
+        !!                   Throws errors if present and mismatches ball tree's metric
         !! @param epsilon    match radius; default DEFAULT_EPSILON
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
@@ -786,7 +809,7 @@ module NdTreeFortran
         !! res(i) is empty if no node satisfies both criteria.
         !!
         !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                   Ignored for ball trees.
+        !!                   Throws errors if present and mismatches ball tree's metric
         !! @param epsilon    match radius; default DEFAULT_EPSILON
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
@@ -818,7 +841,7 @@ module NdTreeFortran
         !! @param[in] bufferSize    initial result buffer size; doubles when full; 
         !!                           default DEFAULT_BUFFER_SIZE; error stop if <= 0
         !! @param[in] metric        'euclidean', 'manhattan', 'chebyshev'; 
-        !!                          default DEFAULT_METRIC. Ignored for ball trees.
+        !!                          default DEFAULT_METRIC. Throws errors if present and mismatches ball tree's metric
         !! @param[in] excludeTarget if .true., removes the target node from the returned list
         !!
         !! @return list of nodes within the search radius
@@ -846,7 +869,7 @@ module NdTreeFortran
         !! res(i) is empty if no node satisfies criteria.
         !!
         !! @param metric     'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
-        !!                   Ignored for ball trees.
+        !!                   Throws errors if present and mismatches ball tree's metric
         !! @param bufferSize initial capacity of each bucket before reallocation; 
         !!                   default DEFAULT_BUFFER_SIZE
         !!
@@ -879,7 +902,7 @@ module NdTreeFortran
         !! @param[in] ids         unordered set of NodeIds to filter by;
         !!                        not paired with coordsList; obtain via getNodeId()
         !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default 2 DEFAULT_METRIC.
-        !!                        Ignored for ball trees.
+        !!                        Throws errors if present and mismatches ball tree's metric
         !! @param[in] bufferSize  initial capacity of each bucket before reallocation; 
         !!                        default DEFAULT_BUFFER_SIZE
         !!
@@ -986,10 +1009,10 @@ module NdTreeFortran
         recursive module subroutine buildSubtreeKDT( &
             this,                                    &
             rootIdx,                                 &
-            depth,                                   &
             indices,                                 &
             lowerIdx,                                &
-            upperIdx                                 &
+            upperIdx,                                &
+            depth                                    &
         )
             class(KdTree),   intent(inout)        :: this
             integer(int64),  intent(out)          :: rootIdx
@@ -1078,10 +1101,10 @@ module NdTreeFortran
         recursive module subroutine buildSubtreeBLT( &
             this,                                    &
             rootIdx,                                 &
-            depth,                                   &
             indices,                                 &
             lowerIdx,                                &
-            upperIdx                                 &
+            upperIdx,                                &
+            depth                                    &
         )
             class(BallTree), intent(inout)        :: this
             integer(int64),  intent(out)          :: rootIdx
@@ -1089,11 +1112,6 @@ module NdTreeFortran
             integer(int64),  intent(in)           :: lowerIdx, upperIdx
             integer(int64),  intent(in), optional :: depth
         end subroutine buildSubtreeBLT
-        module subroutine addNodesBLT(this, coordsList, dataList)
-            class(BallTree),intent(inout)        :: this
-            real(real64), intent(in)           :: coordsList(:,:)
-            class(*),     intent(in), optional :: dataList(:)
-        end subroutine addNodesBLT
 
 
         !====================================================================================!
@@ -1123,7 +1141,11 @@ module NdTreeFortran
             type(NdNode),    intent(in) :: node
             real(real64)                :: radius
         end function getBallRadius
-
+        
+        !> Frees tree resources when a BallTree goes out of scope.
+        module subroutine finalizerBLT(this)
+            type(BallTree), intent(inout) :: this
+        end subroutine finalizerBLT
 
         module subroutine rNN_BLT( &
             this,                  &
@@ -1145,6 +1167,49 @@ module NdTreeFortran
                 character(len=*), intent(in)                 :: metric
         end subroutine rNN_BLT
 
+        ! TODO !
+
+        module subroutine addNodesBLT(this, coordsList, dataList)
+            class(BallTree), intent(inout)        :: this
+            real(real64),    intent(in)           :: coordsList(:,:)
+            class(*),        intent(in), optional :: dataList(:)
+        end subroutine addNodesBLT
+
+        module function rmvNodesBLT( &
+            this,                    &
+            coordsList,              &
+            radii,                   &
+            ids,                     &
+            epsilon,                 &
+            metric,                  &
+            bufferSize               &
+        ) result(numRmv)
+            class(BallTree),  intent(inout)        :: this
+            real(real64),     intent(in), optional :: coordsList(:,:)
+            real(real64),     intent(in), optional :: radii(:)
+            type(NodeId),     intent(in), optional :: ids(:)
+            real(real64),     intent(in), optional :: epsilon
+            character(len=9), intent(in)           :: metric
+            integer,          intent(in)           :: bufferSize
+            integer                                :: numRmv
+        end function rmvNodesBLT
+
+        module subroutine printBallTree(this, unit)
+            class(BallTree), intent(in)           :: this
+            integer,         intent(in), optional :: unit
+        end subroutine printBallTree
+
     end interface
+
+    contains 
+        ! scaffolding !
+        module procedure printBallTree 
+            return 
+        end procedure printBallTree
+        module procedure rmvNodesBLT
+            return
+        end procedure rmvNodesBLT
+        module procedure addNodesBLT
+        end procedure addNodesBLT
 
 end module NdTreeFortran

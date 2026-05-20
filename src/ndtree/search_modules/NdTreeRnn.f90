@@ -161,20 +161,7 @@ submodule(NdTreeFortran) NdTreeRnn
                 end if
             end if
 
-            if (.not. present(metric)) then
-                m = DEFAULT_METRIC
-            else
-                select case (metric)
-                case ('euclidean')
-                    m = 'euclidean'
-                case ('manhattan')
-                    m = 'manhattan'
-                case ('chebyshev')
-                    m = 'chebyshev'
-                case default
-                    error stop "rNN_Centroid: unknown metric"
-                end select
-            end if
+            m = this%assertMetric('rNN', metric)
 
             arrSize = 0
             allocate(res(is))

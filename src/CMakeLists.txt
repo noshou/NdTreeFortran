@@ -11,6 +11,9 @@ add_library(ndtreefortran
 	kdtree/KdTreeUtils.f90
 	kdtree/KdTreeRnn.f90
 	kdtree/KdTreeModders.f90
+	balltree/BallTreeBuild.f90
+	balltree/BallTreeUtils.f90
+	balltree/BallTreeRnn.f90
 	ndtree/search_modules/NdTreeRnn.f90
 	ndtree/search_modules/NdTreeLinScan.f90
 	ndtree/search_modules/NdTreeDBSCAN.f90
