@@ -32,7 +32,8 @@ submodule(NdTreeFortran) KdTreeRnn
                     case default
                         error stop "rNN_KDT: unknown metric"
                 end select
-
+                
+                ! append to found nodes
                 if (withinRadius) then
                     if (size(res) .eq. arrSize) then
                         allocate(tmp(2*size(res)))
@@ -46,7 +47,7 @@ submodule(NdTreeFortran) KdTreeRnn
                     allocate(copy, source=nodePool(node))
                     res(arrSize)%p => copy
                 end if
-
+                
                 axis  = int(nodePool(node)%nodeParams(1), int64)
                 delta = target%coords(axis) - nodePool(node)%coords(axis)
 

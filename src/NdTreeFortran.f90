@@ -168,7 +168,7 @@ module NdTreeFortran
             procedure :: printTree    => printBallTree
             procedure :: getMetric    => getMetricBLT
             procedure :: setMetric    => setMetricBLT
-            procedure :: ballRadius  
+            procedure :: getBallRadius  
             final     :: finalizerBLT
     end type BallTree
 
@@ -910,14 +910,14 @@ module NdTreeFortran
 
         !========= kdtree/KdTreeUtils.f90 =========!
         
-        !> Calculates the split axis of a node.
-        !! Param "a" can either be depth of node or 
+        !> Calculates the split axis of a child
+        !! Param "a" can either be the depth or 
         !! parent's splitting axis. 
         !!
         !! @param[in] a the split axis of the parent or the depth of the node
         !! @param[in] k the dimension of the tree
         !!
-        !! @return    the new split axis
+        !! @return    the next split axis
         !!
         !! Examples:
         !!  - Depth Counter (0-based)
@@ -1114,9 +1114,36 @@ module NdTreeFortran
             character(len=9), intent(in), optional :: metric
         end subroutine setMetricBLT
 
+        !> Returns the radius of the radius of this node
+        !! @param[in] node the node to check
+        !! 
+        !! @return the ball radius
+        module function getBallRadius(this, node) result(radius)
+            class(BallTree), intent(in) :: this
+            type(NdNode),    intent(in) :: node
+            real(real64)                :: radius
+        end function getBallRadius
 
 
-
+        module subroutine rNN_BLT( &
+            this,                  &
+            target,                &
+            currIdx,               &
+            nodePool,              &
+            radius,                &
+            res,                   &
+            arrSize,               &
+            metric                 &
+        )
+                class(BallTree),   intent(in)                :: this
+                type(NdNode),      intent(in)                :: target
+                integer(int64),    intent(in)                :: currIdx
+                type(NdNode),      intent(in)                :: nodePool(:)
+                real(kind=real64), intent(in)                :: radius
+                integer,           intent(inout)             :: arrSize
+                type(NdNodePtr),  allocatable, intent(inout) :: res(:)
+                character(len=*), intent(in)                 :: metric
+        end subroutine rNN_BLT
 
     end interface
 
