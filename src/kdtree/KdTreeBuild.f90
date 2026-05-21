@@ -29,8 +29,20 @@ submodule(NdTreeFortran) KdTreeBuild
                 this%nodePool(rootIdx)%nodeParams(1) = real(axis, real64)
                 this%nodePool(rootIdx)%children(:)   = 0_int64
                 this%nodePool(rootIdx)%treeId        = this%treeId
-                call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx,        median-1_int64, depth=depth+1_int64)
-                call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, median+1_int64, upperIdx,       depth=depth+1_int64)
+                call this%buildSubtree(                 &
+                    this%nodePool(rootIdx)%children(1), &
+                    indices,                            &
+                    lowerIdx,                           &
+                    median-1_int64,                     &
+                    depth=depth+1_int64                 &
+                )
+                call this%buildSubtree(                 &
+                    this%nodePool(rootIdx)%children(2), &
+                    indices,                            &
+                    median+1_int64,                     &
+                    upperIdx,                           &
+                    depth=depth+1_int64                 &
+                )
             end if
 
         end procedure buildSubtreeKdt
@@ -72,35 +84,35 @@ submodule(NdTreeFortran) KdTreeBuild
                 call random_number(randomNumber)
                 pivotIdx = lowerIdx + floor(randomNumber * (upperIdx - lowerIdx + 1_int64))
                 pivotVal = nodes(indices(pivotIdx))%coords(axis)
-                call quickSelectPartition(  &
-                    nodes,                  &
-                    indices,                &
-                    lowerIdx,               &
-                    upperIdx,               &
-                    middleBounds,           &
-                    axis,                   &
-                    pivotVal                &
+                call quickSelectPartition( &
+                    nodes,                 &
+                    indices,               &
+                    lowerIdx,              &
+                    upperIdx,              &
+                    middleBounds,          &
+                    axis,                  &
+                    pivotVal               &
                 )
 
                 if (targetIdx .lt. middleBounds(1)) then 
-                    median = quickSelect(   &
-                        nodes,              &
-                        indices,            &
-                        lowerIdx,           &
-                        middleBounds(1)-1,  &
-                        axis,               &
-                        middleBounds,       &
-                        targetIdx           &
+                    median = quickSelect(  &
+                        nodes,             &
+                        indices,           &
+                        lowerIdx,          &
+                        middleBounds(1)-1, &
+                        axis,              &
+                        middleBounds,      &
+                        targetIdx          &
                     )
                 else if (targetIdx .gt. middleBounds(2)) then 
-                    median = quickSelect(   &
-                        nodes,              &
-                        indices,            &
-                        middleBounds(2)+1,  &
-                        upperIdx,           &
-                        axis,               &
-                        middleBounds,       &
-                        targetIdx           &
+                    median = quickSelect(  &
+                        nodes,             &
+                        indices,           &
+                        middleBounds(2)+1, &
+                        upperIdx,          &
+                        axis,              &
+                        middleBounds,      &
+                        targetIdx          &
                     )
                 else 
                     median = targetIdx

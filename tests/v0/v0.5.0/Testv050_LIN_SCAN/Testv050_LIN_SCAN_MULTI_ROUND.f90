@@ -23,6 +23,7 @@ program Testv050_LIN_SCAN_MULTI_ROUND
             real(real64)                 :: rmvB(2, 1) = reshape([1.0_real64, 0.0_real64], [2, 1])
             type(NdNodePtr), allocatable :: pool(:), res(:)
             type(NodeId)                 :: idA, idB, idC, idD, idE, tmpId
+            type(NodeId)                 :: q1(1), q2(2), q3(3)
             logical                      :: cFound, dFound
             integer                      :: numRmv, i
 
@@ -32,7 +33,8 @@ program Testv050_LIN_SCAN_MULTI_ROUND
             idA  = pool(1)%p%getNodeId()
             idB  = pool(2)%p%getNodeId()
 
-            res = t%linScan([idA, idB])
+            q2 = [idA, idB]
+            res = t%linScan(q2)
             if (size(res) .ne. 2) then
                 write(*, '(A,I0)') '--- MULTI_ROUND r1: expected 2, got: ', size(res); stop 1
             end if
@@ -57,12 +59,14 @@ program Testv050_LIN_SCAN_MULTI_ROUND
 
             numRmv = t%rmvNodes(coordsList=rmvA)
 
-            res = t%linScan([idA])
+            q1 = [idA]
+            res = t%linScan(q1)
             if (size(res) .ne. 0) then
                 write(*, '(A,I0)') '--- MULTI_ROUND r2 removed A: expected 0, got: ', size(res); stop 1
             end if
 
-            res = t%linScan([idB, idC, idD])
+            q3 = [idB, idC, idD]
+            res = t%linScan(q3)
             if (size(res) .ne. 3) then
                 write(*, '(A,I0)') '--- MULTI_ROUND r2 survivors: expected 3, got: ', size(res); stop 1
             end if
@@ -81,11 +85,13 @@ program Testv050_LIN_SCAN_MULTI_ROUND
 
             numRmv = t%rmvNodes(coordsList=rmvB)
 
-            res = t%linScan([idE])
+            q1 = [idE]
+            res = t%linScan(q1)
             if (size(res) .ne. 1) then
                 write(*, '(A,I0)') '--- MULTI_ROUND r3 new E: expected 1, got: ', size(res); stop 1
             end if
-            res = t%linScan([idB])
+            q1 = [idB]
+            res = t%linScan(q1)
             if (size(res) .ne. 0) then
                 write(*, '(A,I0)') '--- MULTI_ROUND r3 removed B: expected 0, got: ', size(res); stop 1
             end if

@@ -29,7 +29,7 @@ call b%setMetric('manhattan')   ! optional; defaults to 'euclidean'
 call b%build(pts)
 ```
 
-Both types share the same search, getter, and mutation API documented below; the only difference is `BallTree`'s metric is fixed at build time (see [`BallTree`](#balltree)).
+Both types share the same search, getter, and mutation API documented below; the only difference is `BallTree`'s metric is fixed at build time (see `[BallTree](#balltree)`).
 
 ---
 
@@ -123,13 +123,11 @@ call t%build(pts, labels)
 call t%build(pts, rebuildRatio=0.5_real64)
 ```
 
-
 | Parameter      | Type                | Default | Notes                                 |
 | -------------- | ------------------- | ------- | ------------------------------------- |
 | `coordsList`   | `real(real64)(:,:)` | n/a     | shape `[dim, N]`                      |
 | `dataList`     | `class(*)(:)`       | absent  | polymorphic; length must equal N or 0 |
 | `rebuildRatio` | `real(real64)`      | `0.25`  | rebuild threshold; must be in (0, 1)  |
-
 
 ### `destroy()`
 
@@ -150,7 +148,6 @@ Physically removes nodes and rebuilds the tree. Returns the number of nodes remo
 
 Five dispatch branches:
 
-
 | Arguments                      | Semantics                                                 |
 | ------------------------------ | --------------------------------------------------------- |
 | `coordsList` only              | removes all within `epsilon` of each query point          |
@@ -158,7 +155,6 @@ Five dispatch branches:
 | `coordsList` + `ids`           | paired: removes node at `coords(:,i)` matching `ids(i)`   |
 | `coordsList` + `radii`         | removes all within `radii(i)` of `coords(:,i)`            |
 | `coordsList` + `radii` + `ids` | spatial search then filters to nodes whose id is in `ids` |
-
 
 ```fortran
 type(NodeId) :: target(1)
@@ -175,16 +171,14 @@ real(real64) :: rs(2)    = [0.5_real64, 1.0_real64]
 n = t%rmvNodes(coordsList=qs, radii=rs)
 ```
 
-
-| Parameter    | Type                | Default       | Notes                                                          |
-| ------------ | ------------------- | ------------- | -------------------------------------------------------------- |
-| `coordsList` | `real(real64)(:,:)` | absent        | required unless `ids` only                                     |
-| `radii`      | `real(real64)(:)`   | absent        | paired with `coordsList`; length must match                    |
-| `ids`        | `type(NodeId)(:)`   | absent        | unordered set; obtain via `getNodeId()`                        |
-| `epsilon`    | `real(real64)`      | `1e-15`       | coord-match tolerance when `radii` is absent                   |
-| `metric`     | `character(*)`      | `'euclidean'` | valid metrics: `'euclidean'`, `'manhattan'`, `'chebyshev'`     |
-| `bufferSize` | `integer(int64)`    | `1000`        | initial rNN buffer capacity; must be > 0                       |
-
+| Parameter    | Type                | Default       | Notes                                                      |
+| ------------ | ------------------- | ------------- | ---------------------------------------------------------- |
+| `coordsList` | `real(real64)(:,:)` | absent        | required unless `ids` only                                 |
+| `radii`      | `real(real64)(:)`   | absent        | paired with `coordsList`; length must match                |
+| `ids`        | `type(NodeId)(:)`   | absent        | unordered set; obtain via `getNodeId()`                    |
+| `epsilon`    | `real(real64)`      | `1e-15`       | coord-match tolerance when `radii` is absent               |
+| `metric`     | `character(*)`      | `'euclidean'` | valid metrics: `'euclidean'`, `'manhattan'`, `'chebyshev'` |
+| `bufferSize` | `integer(int64)`    | `1000`        | initial rNN buffer capacity; must be > 0                   |
 
 ---
 
@@ -225,14 +219,12 @@ res = t%rNN_Coords(q, epsilon=0.5_real64)
 ! res(i)%nodes contains all matches for query i
 ```
 
-
 | Parameter    | Type                | Default       | Notes                                       |
 | ------------ | ------------------- | ------------- | ------------------------------------------- |
 | `coords`     | `real(real64)(:,:)` | n/a           | shape `[dim, nQuery]`                       |
 | `metric`     | `character(*)`      | `'euclidean'` | `'euclidean'`, `'manhattan'`, `'chebyshev'` |
 | `epsilon`    | `real(real64)`      | `1e-15`       | search radius; must be >= 0                 |
 | `bufferSize` | `integer(int64)`    | `1000`        | initial buffer; must be > 0                 |
-
 
 ### `rNN_Ids(coords, ids, metric, epsilon, bufferSize)` -> `NdNodeBucket(:)`
 
@@ -301,14 +293,12 @@ end do
 print *, 'noise nodes:', noiseCount
 ```
 
-
-| Parameter    | Type           | Default       | Notes                                       |
-| ------------ | -------------- | ------------- | ------------------------------------------- |
+| Parameter    | Type             | Default       | Notes                                       |
+| ------------ | ---------------- | ------------- | ------------------------------------------- |
 | `minPts`     | `integer(int64)` | n/a           | minimum neighbourhood size for a core point |
 | `radius`     | `real(real64)`   | n/a           | neighbourhood search radius (epsilon)       |
 | `metric`     | `character(*)`   | `'euclidean'` | `'euclidean'`, `'manhattan'`, `'chebyshev'` |
 | `bufferSize` | `integer(int64)` | `1000`        | initial rNN buffer capacity; must be > 0    |
-
 
 **Error guards** (`error stop`): uninitialized tree; `minPts < 0`; `radius < 0`; unknown metric; `bufferSize <= 0`.
 
@@ -328,6 +318,7 @@ call t%printTree()
 ```
 
 `KdTree` output:
+
 ```
 [axis=1] (3.000, 1.000)
   [axis=2] (1.000, 2.000)
@@ -335,6 +326,7 @@ call t%printTree()
 ```
 
 `BallTree` output (radii depend on geometry):
+
 ```
 [r=2.828] (3.000, 1.000)
   [r=0.000] (1.000, 2.000)
@@ -363,7 +355,6 @@ Prints a diagnostic and calls `stop 1` on mismatch.
 
 ### Tree state
 
-
 | Function                    | Returns          | Notes                                             |
 | --------------------------- | ---------------- | ------------------------------------------------- |
 | `getPop()`                  | `integer(int64)` | number of live nodes                              |
@@ -372,32 +363,27 @@ Prints a diagnostic and calls `stop 1` on mismatch.
 | `getTreeId()`               | `integer(int64)` | unique id per `build` call                        |
 | `getNumMods()`              | `integer(int64)` | insertions since last rebuild; 0 after rebuild    |
 | `getRebuildRatio()`         | `real(real64)`   | current rebuild threshold                         |
-| `setRebuildRatio(ratio)`    |                 | `ratio` must be in (0, 1)                         |
+| `setRebuildRatio(ratio)`    |                  | `ratio` must be in (0, 1)                         |
 | `associatedNodePool(assoc)` | via argument     | `.true.` when pool is allocated                   |
 | `associatedRoot(assoc)`     | via argument     | `.true.` when root index is nonzero               |
 
-
 ### Bulk node retrieval
 
-
-| Function          | Returns               | Notes                                                              |
-| ----------------- | --------------------- | ------------------------------------------------------------------ |
-| `getAllNodes()`   | `NdNodePtr(:)`        | deep-copied array, length == pop; pool_idx pre-stamped             |
-| `getAllCoords()`  | `real(real64)(:,:)`   | shape `[dim, pop]`; column i is pool position i                    |
-| `getAllNodeIds()` | `type(NodeId)(:)`     | length pop; pool_idx accurate at call time                         |
-
+| Function          | Returns             | Notes                                                  |
+| ----------------- | ------------------- | ------------------------------------------------------ |
+| `getAllNodes()`   | `NdNodePtr(:)`      | deep-copied array, length == pop; pool_idx pre-stamped |
+| `getAllCoords()`  | `real(real64)(:,:)` | shape `[dim, pop]`; column i is pool position i        |
+| `getAllNodeIds()` | `type(NodeId)(:)`   | length pop; pool_idx accurate at call time             |
 
 ### Node accessors
 
 On an `NdNode` accessed via `NdNodePtr%p`:
-
 
 | Method        | Returns           | Notes                                  |
 | ------------- | ----------------- | -------------------------------------- |
 | `getNodeId()` | `type(NodeId)`    | stable `node_id`; `pool_idx` at search |
 | `getCoords()` | `real(real64)(:)` | copy of node coordinates               |
 | `getData()`   | `class(*)`        | polymorphic payload; set at build time |
-
 
 ### `getSplitAxis(node)` -> `integer(int64)`
 
@@ -413,7 +399,7 @@ axis = t%getSplitAxis(res(1)%p)   ! 1-based dimension index
 
 ### `isMember(target)` -> `logical`
 
-Returns `.true.` if `target` belongs to this tree instance and has not been removed. Uses `pool_idx` from the node's `NodeId` as an O(1) hint; falls back to a full O(n) pool scan when the hint is stale (e.g. after `rmvNodes` compacted the pool).
+Returns `.true.` if `target` belongs to this tree instance and has not been removed. Uses `pool_idx` from the node's `NodeId` as an O(1) hint; falls back to a full O(n) pool scan when the hint is stale (e.g. after `rmvNodes` compacted the pool). Updates the hint if O(n) call was triggered.
 
 ```fortran
 type(NdNodePtr), allocatable :: res(:)
@@ -425,17 +411,15 @@ print *, t%isMember(res(1))   ! .true.
 
 ## Thread safety
 
-
-| Operation                                                                        | Concurrent-safe?                                                  |
-| -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes  read-only, no locking                                       |
-| `addNodes` from multiple threads on one tree                                     | Yes  serialized via `!$OMP CRITICAL (tree_mutate)`               |
-| `rmvNodes` from multiple threads on one tree                                     | Yes  search is read-only; compaction and rebuild are serialized  |
-| `rmvNodes` concurrent with `addNodes`                                            | Yes  same critical region                                        |
-| Same node removed by N threads concurrently                                      | Yes  keepMask re-checked inside critical; only 1 thread removes  |
-| `build` concurrent with `addNodes`/`rmvNodes`                                    | No  `build` is not guarded                                       |
-| `destroy` concurrent with anything                                               | No                                                                |
-
+| Operation                                                                        | Concurrent-safe?                                               |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes read-only, no locking                                      |
+| `addNodes` from multiple threads on one tree                                     | Yes serialized via `!$OMP CRITICAL (tree_mutate)`              |
+| `rmvNodes` from multiple threads on one tree                                     | Yes search is read-only; compaction and rebuild are serialized |
+| `rmvNodes` concurrent with `addNodes`                                            | Yes same critical region                                       |
+| Same node removed by N threads concurrently                                      | Yes keepMask re-checked inside critical; only 1 thread removes |
+| `build` concurrent with `addNodes`/`rmvNodes`                                    | No `build` is not guarded                                      |
+| `destroy` concurrent with anything                                               | No                                                             |
 
 ---
 
@@ -533,7 +517,6 @@ n2  = size(res) - 1
 ---
 
 ## Default constants
-
 
 | Constant              | Value         | Type               |
 | --------------------- | ------------- | ------------------ |

@@ -641,8 +641,11 @@ module NdTreeFortran
         !! @param[in] coordsList  (dim, n) array of target coordinates
         !! @param[in] radii       n radii paired with coordsList columns;
         !!                        if omitted, matching uses epsilon tolerance
-        !! @param[in] ids         NodeIds to filter by (obtain via getNodeId());
-        !!                        paired with coordsList when radii is absent, treated as a set otherwise
+        !! @param[inout] ids      NodeIds to filter by (obtain via getNodeId());
+        !!                        paired with coordsList when radii is absent, treated as a set otherwise.
+        !!                        In the ids-only branch the lookup runs through linScan, so a stale
+        !!                        pool_idx hint in ids is refreshed in place. ids must be a definable
+        !!                        variable (not an array constructor).
         !! @param[in] epsilon     coordinate-match tolerance (default DEFAULT_EPSILON);
         !!                        used only when radii is absent
         !! @param[in] metric      'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC.
@@ -665,14 +668,14 @@ module NdTreeFortran
             metric,               &
             bufferSize            &
         ) result(numRmv)
-            class(NdTree),    intent(inout)        :: this
-            real(real64),     intent(in), optional :: coordsList(:,:)
-            real(real64),     intent(in), optional :: radii(:)
-            type(NodeId),     intent(in), optional :: ids(:)
-            real(real64),     intent(in), optional :: epsilon
-            character(len=*), intent(in), optional :: metric
-            integer(int64),   intent(in), optional :: bufferSize
-            integer(int64)                         :: numRmv
+            class(NdTree),    intent(inout)           :: this
+            real(real64),     intent(in),    optional :: coordsList(:,:)
+            real(real64),     intent(in),    optional :: radii(:)
+            type(NodeId),     intent(inout), optional :: ids(:)
+            real(real64),     intent(in),    optional :: epsilon
+            character(len=*), intent(in),    optional :: metric
+            integer(int64),   intent(in),    optional :: bufferSize
+            integer(int64)                            :: numRmv
         end function rmvNodes
 
         !==========================================================================!
@@ -706,16 +709,20 @@ module NdTreeFortran
 
         !> Looks up nodes by NodeId, using pool_idx for an O(1) fast path.
         !! Falls back to O(n) scan only when the pool_idx hint is stale.
+        !! When the fallback resolves a match, the matched id's pool_idx is
+        !! refreshed in place to the current slot, so a later lookup of the
+        !! same id takes the fast path. ids is therefore intent(inout) and
+        !! must be a definable variable (not an array constructor).
         !!
         !! Returns a zero-length array when pop=0 or ids is empty.
         !!
-        !! @param[in] ids  NodeIds to find
+        !! @param[inout] ids  NodeIds to find; stale pool_idx hints are refreshed
         !!
         !! @return    res  NdNodePtr array of matched nodes; empty if no match
         module function linScan(this, ids) result(res)
-            class(NdTree),   intent(in)  :: this
-            type(NodeId),    intent(in)  :: ids(:)
-            type(NdNodePtr), allocatable :: res(:)
+            class(NdTree),   intent(in)    :: this
+            type(NodeId),    intent(inout) :: ids(:)
+            type(NdNodePtr), allocatable   :: res(:)
         end function linScan
 
         !====================================================================!

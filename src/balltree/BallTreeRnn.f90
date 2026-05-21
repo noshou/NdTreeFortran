@@ -7,7 +7,7 @@ submodule(NdTreeFortran) BallTreeRnn
             real(kind=real64)            :: dst, childRad
             type(NdNodePtr), allocatable :: tmp(:)
             type(NdNode)                 :: parent
-            type(NdNode), pointer        :: copy
+            type(NdNode),    pointer     :: copy
             logical                      :: withinRadius
 
             if (currIdx .eq. 0_int64) then
@@ -110,33 +110,56 @@ submodule(NdTreeFortran) BallTreeRnn
         !! @param[in]    root      pool index of the subtree root; 0 is a no-op
         !! @param[inout] res       result buffer; doubled in size when full
         !! @param[inout] arrSize   number of results written into res so far
-        recursive subroutine addSubtree(nodePool, root, res, arrSize)
+        subroutine addSubtree(nodePool, root, res, arrSize)
             type(NdNode),                  intent(in)    :: nodePool(:)
             integer(int64),                intent(in)    :: root
             type(NdNodePtr), allocatable,  intent(inout) :: res(:)
             integer(int64),                intent(inout) :: arrSize
-            integer(int64)                               :: i
+            integer(int64)                               :: i, node, stackTop, stackSize
+            integer(int64),  allocatable                 :: stack(:), stmp(:)
             type(NdNode),    pointer                     :: copy
             type(NdNodePtr), allocatable                 :: tmp(:)
 
-            if (root .eq. 0_int64) then 
-                return 
-            else 
-                call addSubtree(nodePool, nodePool(root)%children(1), res, arrSize)
+            if (root .eq. 0_int64) return
 
+            stackSize = 64_int64
+            allocate(stack(stackSize))
+            stackTop = 1_int64
+            stack(1) = root
+
+            do while (stackTop > 0_int64)
+                node     = stack(stackTop)
+                stackTop = stackTop - 1_int64
+
+                ! append node to found nodes
                 if (size(res, kind=int64) .eq. arrSize) then
                     allocate(tmp(2*size(res)))
                     do i = 1_int64, arrSize
                         tmp(i)%p => res(i)%p
-                        res(i)%p => null() 
+                        res(i)%p => null()
                     end do
                     call move_alloc(from=tmp, to=res)
                 end if
                 arrSize = arrSize + 1_int64
-                allocate(copy, source=nodePool(root))
+                allocate(copy, source=nodePool(node))
                 res(arrSize)%p => copy
 
-                call addSubtree(nodePool, nodePool(root)%children(2), res, arrSize)
-            end if
+                ! grow stack if needed before pushing up to 2 children
+                if (stackTop + 2 > stackSize) then
+                    stackSize = stackSize * 2_int64
+                    allocate(stmp(stackSize))
+                    stmp(1:stackTop) = stack(1:stackTop)
+                    call move_alloc(from=stmp, to=stack)
+                end if
+
+                if (nodePool(node)%children(1) .ne. 0_int64) then
+                    stackTop        = stackTop + 1_int64
+                    stack(stackTop) = nodePool(node)%children(1)
+                end if
+                if (nodePool(node)%children(2) .ne. 0_int64) then
+                    stackTop        = stackTop + 1_int64
+                    stack(stackTop) = nodePool(node)%children(2)
+                end if
+            end do
         end subroutine addSubtree
 end submodule BallTreeRnn

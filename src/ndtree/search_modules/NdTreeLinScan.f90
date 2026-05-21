@@ -28,9 +28,11 @@ submodule(NdTreeFortran) NdTreeLinScan
                         cycle
                     end if
                 end if
-                ! O(n) fallback: hint stale or unknown
+                ! O(n) fallback: hint stale or unknown.
+                ! refresh the caller's pool_idx hint to the resolved slot
                 do i = 1_int64, this%pop
                     if (this%nodePool(i)%nodeId%node_id .eq. ids(j)%node_id) then
+                        ids(j)%pool_idx = i
                         numFound = numFound + 1_int64
                         allocate(copy, source=this%nodePool(i))
                         res(numFound)%p => copy

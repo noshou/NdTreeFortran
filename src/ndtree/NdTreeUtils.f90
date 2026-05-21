@@ -37,10 +37,12 @@ submodule(NdTreeFortran) NdTreeUtils
                 end if
             end if
             
-            ! hint stale or slot reused; fall back to O(n) scan
+            ! hint stale or slot reused; fall back to O(n) scan and
+            ! refresh the caller's pool_idx hint to the resolved slot
             res = .false.
             do i = 1_int64, this%pop
                 if (this%nodePool(i)%nodeId%node_id .eq. target%nodeId%node_id) then
+                    target%nodeId%pool_idx = i
                     res = .true.
                     return
                 end if
