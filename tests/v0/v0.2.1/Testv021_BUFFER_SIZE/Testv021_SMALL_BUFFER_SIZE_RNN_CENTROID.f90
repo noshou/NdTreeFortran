@@ -27,7 +27,7 @@ program Testv021_SMALL_BUFFER_SIZE_RNN_CENTROID
             call t%build(coords)
 
             do i = 1, 1000
-                res = t%rNN_Centroid(centroid, 1.0_real64, bufferSize=1)
+                res = t%rNN_Centroid(centroid, 1.0_real64, bufferSize=1_int64)
                 if (size(res) .ne. 10) then
                     write(*, '(A)') '--- smallBufferSize_rNN_Centroid ---'
                     write(*, *) 'expected 10 nodes, got:', size(res)

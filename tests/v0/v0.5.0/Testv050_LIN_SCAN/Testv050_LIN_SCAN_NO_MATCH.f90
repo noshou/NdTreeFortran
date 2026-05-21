@@ -4,7 +4,7 @@ program Testv050_LIN_SCAN_NO_MATCH
     implicit none
     call linScanNoMatch()
     contains
-        !> linScan with node_id=0 returns empty — no node ever has nodeId=0
+        !> linScan with node_id=0 returns empty  no node ever has nodeId=0
         !! (ids start at 1 after build).
         subroutine linScanNoMatch()
             type(KdTree)                 :: t

@@ -3,8 +3,8 @@ submodule(NdTreeFortran) NdNodeUtils
     contains
 
         module procedure printNode
-            integer        :: i, u
-            integer(int64) :: c
+            integer        :: u
+            integer(int64) :: i, c
 
             u = output_unit
             if (present(unit)) u = unit
@@ -30,7 +30,8 @@ submodule(NdTreeFortran) NdNodeUtils
         end procedure printNode
 
         module procedure printNodeSingle 
-            integer                       :: i, u
+            integer                       :: u
+            integer(int64)                :: i
 
             u = output_unit
             if (present(unit)) u = unit
@@ -54,7 +55,7 @@ submodule(NdTreeFortran) NdNodeUtils
         end procedure finalizerNodePtr
 
         module procedure destroyNodeBucket
-            integer :: i
+            integer(int64) :: i
             do i = 1, size(this%nodes)
                 call this%nodes(i)%destroy()
             end do

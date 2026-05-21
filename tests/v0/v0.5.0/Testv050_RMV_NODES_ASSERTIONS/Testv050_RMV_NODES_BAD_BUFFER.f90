@@ -12,7 +12,7 @@ program Testv050_RMV_NODES_BAD_BUFFER
             real(real64) :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
             integer      :: numRmv
             call t%build(init)
-            numRmv = t%rmvNodes(coordsList=query, bufferSize=0)
+            numRmv = t%rmvNodes(coordsList=query, bufferSize=0_int64)
             write(*, '(A)') '--- Testv050_RMV_NODES_BAD_BUFFER ---'
             write(*, '(A)') 'expected error stop for bufferSize=0'
         end subroutine rmvNodesBadBuffer

@@ -1,0 +1,27 @@
+program Testv071_ADD_NODES_DUPLICATES
+    use NdTreeFortran
+    use iso_fortran_env, only: real64
+    implicit none
+    call duplicatesTwoAxisRnnEuclidean()
+    contains
+        !> Build 2D tree with 2 distinct pts. Add 5 duplicate pts at (5,5).
+        subroutine duplicatesTwoAxisRnnEuclidean()
+            type(BallTree)               :: t
+            real(real64)               :: init_coords(2, 2) = reshape( &
+                [1.0_real64, 1.0_real64, 9.0_real64, 9.0_real64], [2, 2])
+            real(real64)               :: dup_coords(2, 5) = reshape( &
+                [5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, &
+                5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64, 5.0_real64], [2, 5])
+            type(NdNodePtr), allocatable :: res(:)
+
+            call t%build(init_coords)
+            call t%addNodes(dup_coords)
+            res = t%rNN_Centroid([5.0_real64, 5.0_real64], 0.01_real64, metric='euclidean')
+
+            if (size(res) .ne. 5) then
+                write(*, '(A)')   '--- Testv071_ADD_NODES_DUPLICATES ---'
+                write(*, '(A,I0)') 'expected 5 duplicate nodes, got: ', size(res)
+                stop 1
+            end if
+        end subroutine duplicatesTwoAxisRnnEuclidean
+end program Testv071_ADD_NODES_DUPLICATES

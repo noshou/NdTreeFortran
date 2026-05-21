@@ -1,0 +1,4 @@
+add_kdtest(Testv071_RNN_BUFFER_DEFAULT)
+add_kdtest(Testv071_RNN_BUFFER_EXACT)
+add_kdtest(Testv071_RNN_BUFFER_SMALL)
+add_kdtest(Testv071_RNN_BUFFER_LARGE)

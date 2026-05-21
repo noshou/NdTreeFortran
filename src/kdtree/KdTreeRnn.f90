@@ -7,7 +7,7 @@ submodule(NdTreeFortran) KdTreeRnn
             real(kind=real64)            :: delta
             type(NdNodePtr), allocatable :: tmp(:)
             integer(int64)               :: axis
-            integer                      :: i
+            integer(int64)               :: i
             type(NdNode), pointer        :: copy
             logical                      :: withinRadius
 

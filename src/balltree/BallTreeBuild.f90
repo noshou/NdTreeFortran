@@ -57,7 +57,7 @@ submodule(NdTreeFortran) BallTreeBuild
                 ! centroid = midpoint between poleA and poleB
                 centroid = 0.5_real64 * (this%nodePool(poleA)%coords + this%nodePool(poleB)%coords)
 
-                ! find the point closest to the centroid — this becomes the subtree root
+                ! find the point closest to the centroid  this becomes the subtree root
                 minDst = huge(minDst)
                 do i = lowerIdx, upperIdx
                     select case(this%metric)
@@ -83,26 +83,24 @@ submodule(NdTreeFortran) BallTreeBuild
                 this%nodePool(rootIdx)%children(:) = 0_int64
                 this%nodePool(rootIdx)%treeId = this%treeId
 
-                ! bounding sphere: radius from root to whichever pole is farther
-                select case(this%metric)
-                    case('euclidean')
-                        radius = max(                                                   &
-                            this%nodePool(rootIdx)%euclideanDist(this%nodePool(poleA)), &
-                            this%nodePool(rootIdx)%euclideanDist(this%nodePool(poleB))  &
-                        )
-                    case('chebyshev')
-                        radius = max(                                                   &
-                            this%nodePool(rootIdx)%chebyshevDist(this%nodePool(poleA)), &
-                            this%nodePool(rootIdx)%chebyshevDist(this%nodePool(poleB))  &
-                        )
-                    case('manhattan')
-                        radius = max(                                                   &
-                            this%nodePool(rootIdx)%manhattanDist(this%nodePool(poleA)), &
-                            this%nodePool(rootIdx)%manhattanDist(this%nodePool(poleB))  &
-                        )
-                    case default
-                        error stop "buildSubtreeBLT: unknown metric!"
-                end select
+                ! bounding sphere: radius = max distance from root to ANY point in
+                ! this subtree. Using only the poles underestimates the radius (an
+                ! off-axis point can be farther than either pole), which would make
+                ! rNN pruning unsound and drop valid neighbours.
+                radius = 0.0_real64
+                do i = lowerIdx, upperIdx
+                    select case(this%metric)
+                        case('euclidean')
+                            dist = this%nodePool(rootIdx)%euclideanDist(this%nodePool(indices(i)))
+                        case('chebyshev')
+                            dist = this%nodePool(rootIdx)%chebyshevDist(this%nodePool(indices(i)))
+                        case('manhattan')
+                            dist = this%nodePool(rootIdx)%manhattanDist(this%nodePool(indices(i)))
+                        case default
+                            error stop "buildSubtreeBLT: unknown metric!"
+                    end select
+                    if (dist .gt. radius) radius = dist
+                end do
                 this%nodePool(rootIdx)%nodeParams(1) = radius
 
                 ! stash root at end so the partition doesn't touch it

@@ -4,13 +4,14 @@ module NdTreeFortran
     use iso_c_binding,   only: c_int64_t
     implicit none
     private
-    public                  :: NdNode, NdNodePtr, NdNodeBucket, NodeId
-    public                  :: NdTree, KdTree, BallTree
-    public                  :: DEFAULT_BUFFER_SIZE, DEFAULT_METRIC, DEFAULT_EPSILON
-    integer(int64), save    :: nextTreeId = 0_int64
+    public               :: NdNode, NdNodePtr, NdNodeBucket, NodeId
+    public               :: NdTree, KdTree, BallTree
+    public               :: DEFAULT_BUFFER_SIZE, DEFAULT_METRIC, DEFAULT_EPSILON
+    public               :: int64
+    integer(int64), save :: nextTreeId = 0_int64
 
     !> Default buffer size for search functions
-    integer,          parameter :: DEFAULT_BUFFER_SIZE = 1000
+    integer(int64),   parameter :: DEFAULT_BUFFER_SIZE = 1000_int64
 
     !> Default metric for search functions
     character(len=9), parameter :: DEFAULT_METRIC      = 'euclidean'
@@ -233,7 +234,7 @@ module NdTreeFortran
             integer(int64),    intent(in)                 :: currIdx
             type(NdNode),      intent(in)                 :: nodePool(:)
             real(kind=real64), intent(in)                 :: radius
-            integer,           intent(inout)              :: arrSize
+            integer(int64),    intent(inout)              :: arrSize
             type(NdNodePtr),   intent(inout), allocatable :: res(:)
             character(len=*),  intent(in)                 :: metric
         end subroutine rNN 
@@ -670,8 +671,8 @@ module NdTreeFortran
             type(NodeId),     intent(in), optional :: ids(:)
             real(real64),     intent(in), optional :: epsilon
             character(len=*), intent(in), optional :: metric
-            integer,          intent(in), optional :: bufferSize
-            integer                                :: numRmv
+            integer(int64),   intent(in), optional :: bufferSize
+            integer(int64)                         :: numRmv
         end function rmvNodes
 
         !==========================================================================!
@@ -693,10 +694,10 @@ module NdTreeFortran
         !!                       then res will be empty.
         module function DBSCAN(this, minPts, radius, metric, bufferSize) result(res)
             class(NdTree),      intent(in)           :: this
-            integer,            intent(in)           :: minPts
+            integer(int64),     intent(in)           :: minPts
             real(real64),       intent(in)           :: radius
             character(len=*),   intent(in), optional :: metric
-            integer,            intent(in), optional :: bufferSize
+            integer(int64),     intent(in), optional :: bufferSize
             type(NdNodeBucket), allocatable          :: res(:)
         end function DBSCAN
         !=======================================================================================!
@@ -741,8 +742,8 @@ module NdTreeFortran
         ) result(res)
             class(NdTree),     intent(in)           :: this
             real(kind=real64), intent(in)           :: radius, centroid(:)
-            integer,           intent(in), optional :: bufferSize
-            character(len=*),  intent(in), optional :: metric 
+            integer(int64),    intent(in), optional :: bufferSize
+            character(len=*),  intent(in), optional :: metric
             type(NdNodePtr),   allocatable          :: res(:)
 
         end function rNN_Centroid
@@ -772,7 +773,7 @@ module NdTreeFortran
             real(real64),       intent(in)           :: coords(:,:)
             character(len=*),   intent(in), optional :: metric 
             real(real64),       intent(in), optional :: epsilon
-            integer,            intent(in), optional :: bufferSize
+            integer(int64),     intent(in), optional :: bufferSize
             type(NdNodeBucket), allocatable          :: res(:)
         end function rNN_Coords
 
@@ -804,7 +805,7 @@ module NdTreeFortran
             type(NodeId),       intent(in)           :: ids(:)
             character(len=*),   intent(in), optional :: metric
             real(real64),       intent(in), optional :: epsilon
-            integer,            intent(in), optional :: bufferSize
+            integer(int64),     intent(in), optional :: bufferSize
             type(NdNodeBucket), allocatable          :: res(:)
         end function rNN_Ids
 
@@ -832,7 +833,7 @@ module NdTreeFortran
             class(NdTree),       intent(in)            :: this
             type(NdNodePtr),     intent(in)            :: target
             real(kind=real64),   intent(in)            :: radius
-            integer,             intent(in), optional  :: bufferSize
+            integer(int64),      intent(in), optional  :: bufferSize
             character(len=*),    intent(in), optional  :: metric
             logical,             intent(in), optional  :: excludeTarget
             type(NdNodePtr),     allocatable           :: res(:)
@@ -859,8 +860,8 @@ module NdTreeFortran
         ) result(res)
             class(NdTree),      intent(in)           :: this
             real(real64),       intent(in)           :: coords(:,:), radii(:)
-            character(len=*),   intent(in), optional :: metric 
-            integer,            intent(in), optional :: bufferSize
+            character(len=*),   intent(in), optional :: metric
+            integer(int64),     intent(in), optional :: bufferSize
             type(NdNodeBucket), allocatable          :: res(:)
         end function rNN_Rad
     
@@ -897,7 +898,7 @@ module NdTreeFortran
             real(real64),       intent(in)           :: coords(:,:), radii(:)
             type(NodeId),       intent(in)           :: ids(:)
             character(len=*),   intent(in), optional :: metric
-            integer,            intent(in), optional :: bufferSize
+            integer(int64),     intent(in), optional :: bufferSize
             type(NdNodeBucket), allocatable          :: res(:)
         end function rNN_RadIds
 
@@ -937,7 +938,7 @@ module NdTreeFortran
         !! Each line is indented 2 spaces per depth level.
         !! Format per line: [axis=N] (x1, x2, ..., xk)
         !!
-        !! Example — 3-point 2D tree built from (1,2), (3,1), (5,4):
+        !! Example  3-point 2D tree built from (1,2), (3,1), (5,4):
         !!
         !!   [axis=1] (3.000, 1.000)
         !!     [axis=2] (1.000, 2.000)
@@ -1032,14 +1033,14 @@ module NdTreeFortran
             arrSize,               &
             metric                 &
         )
-                class(KdTree),     intent(in)                :: this
-                type(NdNode),      intent(in)                :: target
-                integer(int64),    intent(in)                :: currIdx
-                type(NdNode),      intent(in)                :: nodePool(:)
-                real(kind=real64), intent(in)                :: radius
-                integer,           intent(inout)             :: arrSize
-                type(NdNodePtr),  allocatable, intent(inout) :: res(:)
-                character(len=*), intent(in)                 :: metric
+                class(KdTree),     intent(in)                 :: this
+                type(NdNode),      intent(in)                 :: target
+                integer(int64),    intent(in)                 :: currIdx
+                type(NdNode),      intent(in)                 :: nodePool(:)
+                real(kind=real64), intent(in)                 :: radius
+                integer(int64),    intent(inout)              :: arrSize
+                type(NdNodePtr),   intent(inout), allocatable :: res(:)
+                character(len=*),  intent(in)                 :: metric
         end subroutine rNN_KDT
 
         !===============================================================================================!
@@ -1113,14 +1114,14 @@ module NdTreeFortran
             arrSize,               &
             metric                 &
         )
-                class(BallTree),   intent(in)                :: this
-                type(NdNode),      intent(in)                :: target
-                integer(int64),    intent(in)                :: currIdx
-                type(NdNode),      intent(in)                :: nodePool(:)
-                real(kind=real64), intent(in)                :: radius
-                integer,           intent(inout)             :: arrSize
-                type(NdNodePtr),  allocatable, intent(inout) :: res(:)
-                character(len=*), intent(in)                 :: metric
+                class(BallTree),   intent(in)                 :: this
+                type(NdNode),      intent(in)                 :: target
+                integer(int64),    intent(in)                 :: currIdx
+                type(NdNode),      intent(in)                 :: nodePool(:)
+                real(kind=real64), intent(in)                 :: radius
+                integer(int64),    intent(inout)              :: arrSize
+                type(NdNodePtr),   intent(inout), allocatable :: res(:)
+                character(len=*),  intent(in)                 :: metric
         end subroutine rNN_BLT
         module subroutine addNodesBLT(this, coordsList)
             class(BallTree), intent(inout) :: this

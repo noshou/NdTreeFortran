@@ -27,8 +27,8 @@ program Testv060_DBSCAN_CUSTOM_BUFFER
             end do
 
             call t%build(coords)
-            resDefault = t%DBSCAN(minPts=2, radius=0.15_real64)
-            resSmall   = t%DBSCAN(minPts=2, radius=0.15_real64, bufferSize=2)
+            resDefault = t%DBSCAN(minPts=2_int64, radius=0.15_real64)
+            resSmall   = t%DBSCAN(minPts=2_int64, radius=0.15_real64, bufferSize=2_int64)
 
             pop = t%getPop()
 

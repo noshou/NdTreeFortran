@@ -11,7 +11,7 @@ program Testv060_DBSCAN_SINGLE_NODE
             type(NdNodeBucket), allocatable :: res(:)
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=1.0_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=1.0_real64)
 
             if (size(res) .ne. 1) then
                 write(*, '(A)')    '--- Testv060_DBSCAN_SINGLE_NODE ---'

@@ -1,0 +1,5 @@
+add_kdtest(Testv071_RNN_NODE_EUCLIDEAN)
+add_kdtest(Testv071_RNN_NODE_MANHATTAN)
+add_kdtest(Testv071_RNN_NODE_CHEBYSHEV)
+add_kdtest(Testv071_RNN_NODE_NON_MEMBER WILL_FAIL)
+add_kdtest(Testv071_RNN_NODE_EMPTY_TREE WILL_FAIL)

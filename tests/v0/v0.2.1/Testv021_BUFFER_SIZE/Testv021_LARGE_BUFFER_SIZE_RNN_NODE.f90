@@ -27,7 +27,7 @@ program Testv021_LARGE_BUFFER_SIZE_RNN_NODE
                 call random_number(r)
                 r = r * 40.0_real64
 
-                res = t%rNN_Node(centroid_res(1), r, bufferSize=1000000)
+                res = t%rNN_Node(centroid_res(1), r, bufferSize=1000000_int64)
 
                 expected = 0
                 do j = 1, N

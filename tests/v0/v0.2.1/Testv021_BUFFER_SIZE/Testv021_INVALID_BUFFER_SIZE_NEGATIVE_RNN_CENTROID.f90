@@ -20,7 +20,7 @@ program Testv021_INVALID_BUFFER_SIZE_NEGATIVE_RNN_CENTROID
             type(NdNodePtr), allocatable :: res(:)
 
             call t%build(coords)
-            res = t%rNN_Centroid([2.5_real64, 2.5_real64, 0.0_real64], 4.0_real64, bufferSize=-1)
+            res = t%rNN_Centroid([2.5_real64, 2.5_real64, 0.0_real64], 4.0_real64, bufferSize=-1_int64)
             write(*, '(A)') '--- invalidBufferSizeNegative_rNN_Centroid ---'
             write(*, *) 'expected error stop, but rNN_Centroid returned normally'
 

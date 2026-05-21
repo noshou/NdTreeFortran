@@ -1,6 +1,10 @@
 # NdTreeFortran
 
-A thread-safe N-dimensional tree library in modern Fortran. Currently provides a balanced kd-tree (`KdTree`) with radius nearest-neighbour search, id-based lookup, physical node removal, and DBSCAN clustering. The `NdTree` abstract base type is the scaffold for future tree types (BallTree, OcTree, QuadTree).
+A thread-safe N-dimensional tree library in modern Fortran. Provides two concrete tree types  a balanced kd-tree (`KdTree`) and a balanced ball-tree (`BallTree`)  both with radius nearest-neighbour search, id-based lookup, physical node removal, and DBSCAN clustering. The `NdTree` abstract base type holds the shared pool infrastructure and is the scaffold for future tree types (OcTree, QuadTree).
+
+All node counts, indices, and capacities are `integer(int64)` end to end, so a tree can theoretically hold up to `int64` nodes. The `int64` kind is re-exported from the module, so `use NdTreeFortran` brings it into scope for writing literals such as `bufferSize=1000_int64`.
+
+> **v0.7.1** introduces `BallTree` (with selectable distance metric) and widens the entire public integer API to `integer(int64)`.
 
 ---
 
@@ -15,6 +19,17 @@ real(real64) :: pts(3, 4) = reshape([...], [3, 4])   ! 4 points in 3D
 
 call t%build(pts)
 ```
+
+Or a ball-tree, optionally choosing the distance metric before building:
+
+```fortran
+type(BallTree) :: b
+
+call b%setMetric('manhattan')   ! optional; defaults to 'euclidean'
+call b%build(pts)
+```
+
+Both types share the same search, getter, and mutation API documented below; the only difference is `BallTree`'s metric is fixed at build time (see [`BallTree`](#balltree)).
 
 ---
 
@@ -41,9 +56,9 @@ if (a%node_id == b%node_id) ...
 
 A single tree node. Not directly constructable by the caller. Accessed via `NdNodePtr%p` after a search. Exposes:
 
-- `getCoords()` — `real(real64)(:)` coordinates
-- `getData()` — polymorphic payload (if set at build time)
-- `getNodeId()` — `type(NodeId)`
+- `getCoords()`  `real(real64)(:)` coordinates
+- `getData()`  polymorphic payload (if set at build time)
+- `getNodeId()`  `type(NodeId)`
 
 ### `NdNodePtr`
 
@@ -68,14 +83,25 @@ end type NdNodeBucket
 
 ### `NdTree` (abstract base)
 
-The shared pool infrastructure, all search functions, and all getters are defined on this abstract type. `KdTree` extends `NdTree`. Users declare `type(KdTree)` — `NdTree` is the scaffold for future tree types.
+The shared pool infrastructure, all search functions, and all getters are defined on this abstract type. `KdTree` and `BallTree` both extend `NdTree`. Users declare `type(KdTree)` or `type(BallTree)`  `NdTree` is the scaffold for future tree types.
 
 ### `KdTree`
 
 The concrete kd-tree type. Extends `NdTree` and implements the balanced kd-tree build, rNN search, addNodes, and rmvNodes. Also exposes:
 
-- `getSplitAxis(node)` — `integer(int64)`, the split dimension of a given node
-- `printTree([unit])` — prints the tree in pre-order; see format below
+- `getSplitAxis(node)`  `integer(int64)`, the split dimension of a given node
+- `printTree([unit])`  prints the tree in pre-order; see format below
+
+### `BallTree`
+
+The concrete ball-tree type. Extends `NdTree` and implements a balanced ball-tree build, rNN search, addNodes, and rmvNodes. Unlike `KdTree`, a `BallTree` carries a single distance metric chosen at build time and used for both construction and every search. Exposes:
+
+- `setMetric(metric)`  sets the metric (`'euclidean'`, `'manhattan'`, `'chebyshev'`); must be called **before** `build` and `error stop`s if the tree is already initialized. Defaults to `'euclidean'` if never called.
+- `getMetric()`  `character(len=9)`, the tree's metric, or `'not init'` if not built
+- `getBallRadius(node)`  `real(real64)`, the bounding-ball radius of a node (leaves are `0`); `error stop`s on an uninitialized tree
+- `printTree([unit])`  prints the tree in pre-order with `[r=<radius>]` prefixes; see format below
+
+Because the metric is fixed per tree, passing a `metric` argument to a `BallTree` search that disagrees with the tree's metric is an error.
 
 ---
 
@@ -83,7 +109,7 @@ The concrete kd-tree type. Extends `NdTree` and implements the balanced kd-tree 
 
 ### `build(coordsList, dataList, rebuildRatio)`
 
-Builds the kd-tree from `coordsList`, a `real(real64)` array of shape `[dim, N]`. Rejects double-build without an intervening `destroy`.
+Builds the tree from `coordsList`, a `real(real64)` array of shape `[dim, N]`. Rejects double-build without an intervening `destroy`. For a `BallTree`, call `setMetric` first if you want a non-default metric.
 
 ```fortran
 real(real64) :: pts(2, 5) = reshape([...], [2, 5])
@@ -118,7 +144,7 @@ real(real64) :: extra(2, 3) = reshape([...], [2, 3])
 call t%addNodes(extra)
 ```
 
-### `rmvNodes(coordsList, radii, ids, epsilon, metric, bufferSize)` -> `integer`
+### `rmvNodes(coordsList, radii, ids, epsilon, metric, bufferSize)` -> `integer(int64)`
 
 Physically removes nodes and rebuilds the tree. Returns the number of nodes removed.
 
@@ -157,7 +183,7 @@ n = t%rmvNodes(coordsList=qs, radii=rs)
 | `ids`        | `type(NodeId)(:)`   | absent        | unordered set; obtain via `getNodeId()`                        |
 | `epsilon`    | `real(real64)`      | `1e-15`       | coord-match tolerance when `radii` is absent                   |
 | `metric`     | `character(*)`      | `'euclidean'` | valid metrics: `'euclidean'`, `'manhattan'`, `'chebyshev'`     |
-| `bufferSize` | `integer`           | `1000`        | initial rNN buffer capacity; must be > 0                       |
+| `bufferSize` | `integer(int64)`    | `1000`        | initial rNN buffer capacity; must be > 0                       |
 
 
 ---
@@ -205,7 +231,7 @@ res = t%rNN_Coords(q, epsilon=0.5_real64)
 | `coords`     | `real(real64)(:,:)` | n/a           | shape `[dim, nQuery]`                       |
 | `metric`     | `character(*)`      | `'euclidean'` | `'euclidean'`, `'manhattan'`, `'chebyshev'` |
 | `epsilon`    | `real(real64)`      | `1e-15`       | search radius; must be >= 0                 |
-| `bufferSize` | `integer`           | `1000`        | initial buffer; must be > 0                 |
+| `bufferSize` | `integer(int64)`    | `1000`        | initial buffer; must be > 0                 |
 
 
 ### `rNN_Ids(coords, ids, metric, epsilon, bufferSize)` -> `NdNodeBucket(:)`
@@ -265,7 +291,7 @@ Density-based spatial clustering. Returns `res(1:nClusters+1)`: each `res(i)` fo
 type(NdNodeBucket), allocatable :: res(:)
 integer :: nClusters, noiseCount, i
 
-res        = t%DBSCAN(minPts=3, radius=0.5_real64)
+res        = t%DBSCAN(minPts=3_int64, radius=0.5_real64)
 nClusters  = size(res) - 1
 noiseCount = size(res(size(res))%nodes)
 
@@ -278,10 +304,10 @@ print *, 'noise nodes:', noiseCount
 
 | Parameter    | Type           | Default       | Notes                                       |
 | ------------ | -------------- | ------------- | ------------------------------------------- |
-| `minPts`     | `integer`      | n/a           | minimum neighbourhood size for a core point |
-| `radius`     | `real(real64)` | n/a           | neighbourhood search radius (epsilon)       |
-| `metric`     | `character(*)` | `'euclidean'` | `'euclidean'`, `'manhattan'`, `'chebyshev'` |
-| `bufferSize` | `integer`      | `1000`        | initial rNN buffer capacity; must be > 0    |
+| `minPts`     | `integer(int64)` | n/a           | minimum neighbourhood size for a core point |
+| `radius`     | `real(real64)`   | n/a           | neighbourhood search radius (epsilon)       |
+| `metric`     | `character(*)`   | `'euclidean'` | `'euclidean'`, `'manhattan'`, `'chebyshev'` |
+| `bufferSize` | `integer(int64)` | `1000`        | initial rNN buffer capacity; must be > 0    |
 
 
 **Error guards** (`error stop`): uninitialized tree; `minPts < 0`; `radius < 0`; unknown metric; `bufferSize <= 0`.
@@ -292,27 +318,34 @@ print *, 'noise nodes:', noiseCount
 
 ## Printing
 
-### `printTree([unit])` / `printKdTree([unit])`
+### `printTree([unit])`
 
-Prints the tree in pre-order (root, left subtree, right subtree). Each line is indented two spaces per depth level and prefixed with `[axis=N]`.
+Prints the tree in pre-order (root, left subtree, right subtree). Each line is indented two spaces per depth level. The per-node prefix is tree-specific: `KdTree` prints `[axis=N]` (the split dimension), `BallTree` prints `[r=<radius>]` (the bounding-ball radius).
 
 ```fortran
 ! 3 points in 2D: (1,2), (3,1), (5,4)
 call t%printTree()
 ```
 
-Output:
+`KdTree` output:
 ```
 [axis=1] (3.000, 1.000)
   [axis=2] (1.000, 2.000)
   [axis=2] (5.000, 4.000)
 ```
 
+`BallTree` output (radii depend on geometry):
+```
+[r=2.828] (3.000, 1.000)
+  [r=0.000] (1.000, 2.000)
+  [r=0.000] (5.000, 4.000)
+```
+
 `unit` defaults to stdout. Pass any open Fortran unit to redirect output.
 
 ### `assert(testName, expected)`
 
-Compares `printTree` output against an expected node set, matching as an unordered multiset of coordinate tuples (axis prefix and indentation are stripped). Use in tests to verify tree shape independent of tie-breaking order.
+Compares `printTree` output against an expected node set, matching as an unordered multiset of coordinate tuples (the per-node prefix and indentation are stripped). Use in tests to verify tree shape independent of tie-breaking order.
 
 ```fortran
 call t%assert('my_test', [ character(len=32) :: &
@@ -339,7 +372,7 @@ Prints a diagnostic and calls `stop 1` on mismatch.
 | `getTreeId()`               | `integer(int64)` | unique id per `build` call                        |
 | `getNumMods()`              | `integer(int64)` | insertions since last rebuild; 0 after rebuild    |
 | `getRebuildRatio()`         | `real(real64)`   | current rebuild threshold                         |
-| `setRebuildRatio(ratio)`    | —                | `ratio` must be in (0, 1)                         |
+| `setRebuildRatio(ratio)`    |                 | `ratio` must be in (0, 1)                         |
 | `associatedNodePool(assoc)` | via argument     | `.true.` when pool is allocated                   |
 | `associatedRoot(assoc)`     | via argument     | `.true.` when root index is nonzero               |
 
@@ -395,12 +428,12 @@ print *, t%isMember(res(1))   ! .true.
 
 | Operation                                                                        | Concurrent-safe?                                                  |
 | -------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes — read-only, no locking                                       |
-| `addNodes` from multiple threads on one tree                                     | Yes — serialized via `!$OMP CRITICAL (tree_mutate)`               |
-| `rmvNodes` from multiple threads on one tree                                     | Yes — search is read-only; compaction and rebuild are serialized  |
-| `rmvNodes` concurrent with `addNodes`                                            | Yes — same critical region                                        |
-| Same node removed by N threads concurrently                                      | Yes — keepMask re-checked inside critical; only 1 thread removes  |
-| `build` concurrent with `addNodes`/`rmvNodes`                                    | No — `build` is not guarded                                       |
+| Any `rNN_*`, `linScan`, `DBSCAN`, `getAllNodes`, `getAllCoords`, `getAllNodeIds` | Yes  read-only, no locking                                       |
+| `addNodes` from multiple threads on one tree                                     | Yes  serialized via `!$OMP CRITICAL (tree_mutate)`               |
+| `rmvNodes` from multiple threads on one tree                                     | Yes  search is read-only; compaction and rebuild are serialized  |
+| `rmvNodes` concurrent with `addNodes`                                            | Yes  same critical region                                        |
+| Same node removed by N threads concurrently                                      | Yes  keepMask re-checked inside critical; only 1 thread removes  |
+| `build` concurrent with `addNodes`/`rmvNodes`                                    | No  `build` is not guarded                                       |
 | `destroy` concurrent with anything                                               | No                                                                |
 
 
@@ -431,7 +464,7 @@ end do
 type(NdNodeBucket), allocatable :: res(:)
 integer :: nClusters, i, j
 
-res       = t%DBSCAN(minPts=4, radius=0.5_real64)
+res       = t%DBSCAN(minPts=4_int64, radius=0.5_real64)
 nClusters = size(res) - 1
 
 do i = 1, nClusters
@@ -453,7 +486,7 @@ type(KdTree)                    :: t
 type(NdNodePtr),    allocatable :: found(:)
 type(NodeId)                    :: id(1)
 type(NdNodeBucket), allocatable :: res(:)
-integer                         :: numRmv
+integer(int64)                         :: numRmv
 
 call t%build(pts)
 
@@ -475,7 +508,7 @@ type(NdNodeBucket), allocatable :: res(:)
 call t%build(pts)
 
 !$OMP PARALLEL DEFAULT(NONE) SHARED(t) NUM_THREADS(4) PRIVATE(res)
-res = t%DBSCAN(minPts=3, radius=0.5_real64)
+res = t%DBSCAN(minPts=3_int64, radius=0.5_real64)
 ! Each thread gets its own result copy; tree is read-only
 !$OMP END PARALLEL
 ```
@@ -487,11 +520,11 @@ DBSCAN results do not depend on tree population when only noise is added or remo
 ```fortran
 integer :: n1, n2
 
-res = t%DBSCAN(minPts=3, radius=0.5_real64)
+res = t%DBSCAN(minPts=3_int64, radius=0.5_real64)
 n1  = size(res) - 1   ! nClusters
 
 call t%addNodes(distant_pts)   ! points too far to join any cluster
-res = t%DBSCAN(minPts=3, radius=0.5_real64)
+res = t%DBSCAN(minPts=3_int64, radius=0.5_real64)
 n2  = size(res) - 1
 
 ! n1 == n2; cluster membership is unchanged
@@ -504,6 +537,6 @@ n2  = size(res) - 1
 
 | Constant              | Value         | Type               |
 | --------------------- | ------------- | ------------------ |
-| `DEFAULT_BUFFER_SIZE` | `1000`        | `integer`          |
+| `DEFAULT_BUFFER_SIZE` | `1000`        | `integer(int64)`   |
 | `DEFAULT_METRIC`      | `'euclidean'` | `character(len=9)` |
 | `DEFAULT_EPSILON`     | `1e-15`       | `real(real64)`     |

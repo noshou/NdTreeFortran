@@ -30,7 +30,7 @@ program Testv060_MULTITHREAD_DBSCAN_MANY_THREADS
 
             !$OMP PARALLEL DEFAULT(NONE) SHARED(t, pop, errors) NUM_THREADS(8) &
             !$OMP   PRIVATE(res, total, i)
-            res   = t%DBSCAN(minPts=2, radius=0.15_real64)
+            res   = t%DBSCAN(minPts=2_int64, radius=0.15_real64)
             total = 0_int64
             do i = 1, size(res)
                 total = total + int(size(res(i)%nodes), int64)

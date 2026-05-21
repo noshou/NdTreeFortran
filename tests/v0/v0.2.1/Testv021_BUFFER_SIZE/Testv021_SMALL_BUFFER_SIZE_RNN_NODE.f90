@@ -27,7 +27,7 @@ program Testv021_SMALL_BUFFER_SIZE_RNN_NODE
             centroid_res = t%rNN_Centroid([0.1_real64, 0.0_real64, 0.0_real64], 0.0_real64)
 
             do i = 1, 1000
-                res = t%rNN_Node(centroid_res(1), 1.0_real64, bufferSize=1)
+                res = t%rNN_Node(centroid_res(1), 1.0_real64, bufferSize=1_int64)
                 if (size(res) .ne. 10) then
                     write(*, '(A)') '--- smallBufferSize_rNN_Node ---'
                     write(*, *) 'expected 10 nodes, got:', size(res)

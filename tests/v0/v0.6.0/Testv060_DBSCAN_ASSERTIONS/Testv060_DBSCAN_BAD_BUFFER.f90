@@ -10,7 +10,7 @@ program Testv060_DBSCAN_BAD_BUFFER
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             type(NdNodeBucket), allocatable :: res(:)
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=1.0_real64, bufferSize=0)
+            res = t%DBSCAN(minPts=2_int64, radius=1.0_real64, bufferSize=0_int64)
             write(*, '(A)') '--- Testv060_DBSCAN_BAD_BUFFER ---'
             write(*, '(A)') 'expected error stop for bufferSize=0, but returned normally'
         end subroutine dbscanBadBuffer

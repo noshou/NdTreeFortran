@@ -81,7 +81,7 @@ submodule(NdTreeFortran) NdTreeUtils
         function normalizeExp(s) result(t)
             character(len=*), intent(in) :: s
             character(len=len(s))        :: t
-            integer                      :: i, j, k, n
+            integer(int64)               :: i, j, k, n
             n = len_trim(s)
             t = ' '
             i = 1
@@ -123,7 +123,7 @@ submodule(NdTreeFortran) NdTreeUtils
         function stripPrefix(s) result(t)
             character(len=*), intent(in) :: s
             character(len=64)            :: t
-            integer                      :: pos
+            integer(int64)               :: pos
             pos = index(s, '(')
             if (pos.eq.0) then
                 t = normalizeExp(adjustl(s))
@@ -135,7 +135,7 @@ submodule(NdTreeFortran) NdTreeUtils
         !> Insertion sort, lexicographic, in place.
         subroutine sortLines(arr)
             character(len=*), intent(inout) :: arr(:)
-            integer                         :: i, j
+            integer(int64)                  :: i, j
             character(len=len(arr))         :: tmp
             do i = 2, size(arr)
                 tmp = arr(i)
@@ -153,7 +153,7 @@ submodule(NdTreeFortran) NdTreeUtils
         subroutine dumpLines(label, lines)
             character(len=*), intent(in) :: label
             character(len=*), intent(in) :: lines(:)
-            integer                      :: i
+            integer(int64)               :: i
             write(*, '(A)') label
             do i = 1, size(lines)
                 write(*, '(A)') '    "' // trim(lines(i)) // '"'
@@ -162,7 +162,8 @@ submodule(NdTreeFortran) NdTreeUtils
 
         module procedure assert
 
-            integer                        :: u, ios, i
+            integer                        :: u, ios
+            integer(int64)                 :: i
             character(len=64)              :: line
             character(len=64), allocatable :: actual(:), expCopy(:)
 
@@ -215,15 +216,15 @@ submodule(NdTreeFortran) NdTreeUtils
 
         module procedure destroy
             if (associated(this%nodePool)) deallocate(this%nodePool)
-            this%nodePool       => null()
-            this%rootIdx        = 0_int64
-            this%dim            = 0_int64
-            this%pop            = 0_int64
-            this%treeId         = 0_int64
-            this%initialized    = .false.
-            this%modifications  = 0_int64
-            this%rebuildRatio   = 0.25_real64
-            this%currNodeId     = 0_int64
+            this%nodePool      => null()
+            this%rootIdx       = 0_int64
+            this%dim           = 0_int64
+            this%pop           = 0_int64
+            this%treeId        = 0_int64
+            this%initialized   = .false.
+            this%modifications = 0_int64
+            this%rebuildRatio  = 0.25_real64
+            this%currNodeId    = 0_int64
         end procedure destroy
 
 end submodule NdTreeUtils

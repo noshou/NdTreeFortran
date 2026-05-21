@@ -26,7 +26,7 @@ program Testv021_LARGE_BUFFER_SIZE_RNN_CENTROID
                 call random_number(centroid)
                 centroid = centroid * 100.0_real64
 
-                res = t%rNN_Centroid(centroid, r, bufferSize=1000000)
+                res = t%rNN_Centroid(centroid, r, bufferSize=1000000_int64)
 
                 expected = 0
                 do j = 1, N

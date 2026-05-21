@@ -87,15 +87,14 @@ submodule(NdTreeFortran) NdTreeModders
 
         module procedure rmvNodes
 
-            logical                         :: isInit, hasIds, hasRad, hasCrd, resIsPtr
-            integer                         :: sizeRad, sizeCrd, sizeDim, sizeIds, buffSze
-            integer(int64)                  :: dim
+            logical                         :: isInit,  hasIds,  hasRad,  hasCrd,  resIsPtr
+            integer(int64)                  :: sizeRad, sizeCrd, sizeDim, sizeIds, buffSze, dim
             character(len=9)                :: mtr
-            type(NdNodePtr),  allocatable   :: foundNodes(:)
+            type(NdNodePtr),    allocatable :: foundNodes(:)
             type(NdNodeBucket), allocatable :: foundNodesBucket(:)
-            integer(int64),   allocatable   :: rmvIds(:)
-            logical,          allocatable   :: keepMask(:)
-            type(NdNode),     pointer       :: newPool(:)
+            integer(int64),     allocatable :: rmvIds(:)
+            logical,            allocatable :: keepMask(:)
+            type(NdNode),       pointer     :: newPool(:)
             integer(int64)                  :: i, j, k, numRmvIds, newPop
 
             call this%getInitState(isInit)

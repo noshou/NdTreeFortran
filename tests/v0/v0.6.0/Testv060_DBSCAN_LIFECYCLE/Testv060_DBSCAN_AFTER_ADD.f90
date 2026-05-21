@@ -16,7 +16,7 @@ program Testv060_DBSCAN_AFTER_ADD
             integer                         :: i
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             pop1   = t%getPop()
             total1 = 0_int64
             do i = 1, size(res)
@@ -24,7 +24,7 @@ program Testv060_DBSCAN_AFTER_ADD
             end do
 
             call t%addNodes(newCoords)
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             pop2   = t%getPop()
             total2 = 0_int64
             do i = 1, size(res)

@@ -18,7 +18,7 @@ submodule(NdTreeFortran) KdTreePrint
             type(NdNode),   intent(in) :: nodePool(:)
             integer(int64), intent(in) :: idx, depth
             integer,        intent(in) :: u
-            integer                    :: i, d
+            integer(int64)             :: i, d
 
             do d = 1, int(depth)
                 write(u, '(A)', advance='no') '  '

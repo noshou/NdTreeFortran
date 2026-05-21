@@ -10,7 +10,7 @@ program Testv060_DBSCAN_NEG_MINPTS
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             type(NdNodeBucket), allocatable :: res(:)
             call t%build(coords)
-            res = t%DBSCAN(minPts=-1, radius=1.0_real64)
+            res = t%DBSCAN(minPts=-1_int64, radius=1.0_real64)
             write(*, '(A)') '--- Testv060_DBSCAN_NEG_MINPTS ---'
             write(*, '(A)') 'expected error stop for minPts=-1, but returned normally'
         end subroutine dbscanNegMinPts

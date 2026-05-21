@@ -10,7 +10,7 @@ submodule(NdTreeFortran) NdTreeRnn
             character(len=*),  intent(in), optional :: metric
             real(real64),      intent(in), optional :: epsilon
             type(NodeId),      intent(in), optional :: ids(:)
-            integer,           intent(in), optional :: bufferSize
+            integer(int64),    intent(in), optional :: bufferSize
 
             if (.not. t%initialized) then
                 write(*, '(*(A))') name, ': tree is not initialized (call build first)'
@@ -52,7 +52,8 @@ submodule(NdTreeFortran) NdTreeRnn
 
         module procedure rNN_Node
             
-            integer                      :: arrSize, is, i, j
+            integer(int64)               :: is
+            integer(int64)               :: arrSize, i, j
             character(len=9)             :: m
             type(NdNodePtr), allocatable :: tmp(:)
 
@@ -138,7 +139,8 @@ submodule(NdTreeFortran) NdTreeRnn
 
         module procedure rNN_Centroid
 
-            integer                      :: arrSize, is, i
+            integer(int64)               :: is
+            integer(int64)               :: arrSize, i
             character(len=9)             :: m
             type(NdNode)                 :: dummyNode
             type(NdNodePtr), allocatable :: tmp(:)
@@ -195,7 +197,8 @@ submodule(NdTreeFortran) NdTreeRnn
         end procedure rNN_Centroid
 
         module procedure rNN_Coords
-            integer                      :: i, bs
+            integer(int64)               :: bs
+            integer(int64)               :: i
             real(real64)                 :: e
             type(NdNodePtr), allocatable :: nptrs(:)
 
@@ -242,7 +245,8 @@ submodule(NdTreeFortran) NdTreeRnn
         end procedure rNN_Coords
 
         module procedure rNN_Ids
-            integer                      :: i, j, bs, currSize
+            integer(int64)               :: bs
+            integer(int64)               :: i, j, currSize
             real(real64)                 :: e
             type(NdNodePtr), allocatable :: nptrsTmp(:)
 
@@ -288,8 +292,9 @@ submodule(NdTreeFortran) NdTreeRnn
         end procedure rNN_Ids
 
         module procedure rNN_Rad
-            
-            integer                      :: i, bs
+
+            integer(int64)               :: bs
+            integer(int64)               :: i
             type(NdNodePtr), allocatable :: nptrs(:)
 
             ! assertion checks
@@ -324,7 +329,7 @@ submodule(NdTreeFortran) NdTreeRnn
         end procedure rNN_Rad
 
         module procedure rNN_RadIds
-            integer                         :: i, j, k, nMatch
+            integer(int64)                  :: i, j, k, nMatch
             type(NdNodeBucket), allocatable :: resTmp(:)
             type(NdNodePtr),    allocatable :: nptrTmp(:)
             ! assertion checks

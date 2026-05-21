@@ -3,17 +3,16 @@ submodule(NdTreeFortran) BallTreeRnn
     contains
         module procedure rNN_BLT
             integer(int64), allocatable  :: stack(:), stmp(:)
-            integer(int64)               :: stackTop, stackSize, childIdx, arrSize64, i
+            integer(int64)               :: stackTop, stackSize, childIdx, i
             real(kind=real64)            :: dst, childRad
             type(NdNodePtr), allocatable :: tmp(:)
             type(NdNode)                 :: parent
             type(NdNode), pointer        :: copy
             logical                      :: withinRadius
-            
-            if (currIdx .eq. 0_int64) then 
+
+            if (currIdx .eq. 0_int64) then
                 return
             else
-                arrSize64 = int(arrSize, kind=int64)
                 stackSize = 64_int64
                 allocate(stack(stackSize))
                 stackTop  = 1_int64
@@ -35,18 +34,18 @@ submodule(NdTreeFortran) BallTreeRnn
                     end select
 
                     ! append to found nodes
-                    if (withinRadius) then 
-                        if (size(res) .eq. arrSize64) then 
+                    if (withinRadius) then
+                        if (size(res, kind=int64) .eq. arrSize) then
                             allocate(tmp(2*size(res)))
-                            do i = 1_int64, arrSize64
+                            do i = 1_int64, arrSize
                                 tmp(i)%p => res(i)%p
-                                res(i)%p => null() 
+                                res(i)%p => null()
                             end do
                             call move_alloc(from=tmp, to=res)
                         end if
-                        arrSize64 = arrSize64 + 1_int64
+                        arrSize = arrSize + 1_int64
                         allocate(copy, source=parent)
-                        res(arrSize64)%p => copy
+                        res(arrSize)%p => copy
                     end if
 
                     ! grow stack if needed before pushing up to 2 children
@@ -74,7 +73,7 @@ submodule(NdTreeFortran) BallTreeRnn
                                 error stop "rNN_BLT: unknown metric"
                         end select
                         if (dst + childRad .le. radius) then
-                            call addSubtree(nodePool, childIdx, res, arrSize64)
+                            call addSubtree(nodePool, childIdx, res, arrSize)
                         else if (dst - childRad .le. radius) then
                             stackTop        = stackTop + 1_int64
                             stack(stackTop) = childIdx
@@ -94,14 +93,14 @@ submodule(NdTreeFortran) BallTreeRnn
                                 error stop "rNN_BLT: unknown metric"
                         end select
                         if (dst + childRad .le. radius) then
-                            call addSubtree(nodePool, childIdx, res, arrSize64)
+                            call addSubtree(nodePool, childIdx, res, arrSize)
                         else if (dst - childRad .le. radius) then
                             stackTop        = stackTop + 1_int64
                             stack(stackTop) = childIdx
                         end if
                     end if
                 end do
-            end if 
+            end if
         end procedure rNN_BLT
 
         !> Walks a subtree and appends every node to res, with no distance checks.
@@ -125,7 +124,7 @@ submodule(NdTreeFortran) BallTreeRnn
             else 
                 call addSubtree(nodePool, nodePool(root)%children(1), res, arrSize)
 
-                if (size(res) .eq. arrSize) then 
+                if (size(res, kind=int64) .eq. arrSize) then
                     allocate(tmp(2*size(res)))
                     do i = 1_int64, arrSize
                         tmp(i)%p => res(i)%p

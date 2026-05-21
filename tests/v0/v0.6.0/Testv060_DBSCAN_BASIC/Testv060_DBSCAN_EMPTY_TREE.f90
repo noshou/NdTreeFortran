@@ -13,7 +13,7 @@ program Testv060_DBSCAN_EMPTY_TREE
 
             call t%build(coords)
             numRmv = t%rmvNodes(coordsList=coords)
-            res = t%DBSCAN(minPts=2, radius=1.0_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=1.0_real64)
 
             if (size(res) .ne. 0) then
                 write(*, '(A)')    '--- Testv060_DBSCAN_EMPTY_TREE ---'

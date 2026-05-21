@@ -6,7 +6,7 @@ submodule(NdTreeFortran) NdTreeDBSCAN
             type(NdNodePtr), allocatable :: neighbourhood(:), clusterNodes(:)
             type(NodeId),    allocatable :: nodes(:)
             type(NdNodePtr), allocatable :: node
-            integer                      :: bs
+            integer(int64)               :: bs
             integer(int64)               :: i, j, k, clusterIdx, seedsSize, oldSize, noiseCount
             character(len=9)             :: m
             logical                      :: isInit

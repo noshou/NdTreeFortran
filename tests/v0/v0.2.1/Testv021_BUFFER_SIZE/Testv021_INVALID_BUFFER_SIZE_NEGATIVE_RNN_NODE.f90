@@ -22,7 +22,7 @@ program Testv021_INVALID_BUFFER_SIZE_NEGATIVE_RNN_NODE
             call t%build(coords)
             centroid_res = t%rNN_Centroid([5.0_real64, 1.0_real64, 0.92_real64], 0.0_real64)
 
-            res = t%rNN_Node(centroid_res(1), 4.0_real64, bufferSize=-1)
+            res = t%rNN_Node(centroid_res(1), 4.0_real64, bufferSize=-1_int64)
             write(*, '(A)') '--- invalidBufferSizeNegative_rNN_Node ---'
             write(*, *) 'expected error stop, but rNN_Node returned normally'
 

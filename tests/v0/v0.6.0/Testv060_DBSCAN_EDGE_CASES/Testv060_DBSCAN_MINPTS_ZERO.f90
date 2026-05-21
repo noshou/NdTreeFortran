@@ -15,7 +15,7 @@ program Testv060_DBSCAN_MINPTS_ZERO
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=0, radius=0.15_real64)
+            res = t%DBSCAN(minPts=0_int64, radius=0.15_real64)
 
             nClusters = size(res) - 1
             noiseSize = size(res(size(res))%nodes)

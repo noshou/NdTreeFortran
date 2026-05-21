@@ -13,7 +13,7 @@ program Testv040_FIND_NODES_COORDS_BAD_BUFFER
             real(real64) :: query(2, 1) = reshape([0.0_real64, 0.0_real64], [2, 1])
 
             call t%build(coords)
-            res = t%rNN_Coords(query, bufferSize=-1)
+            res = t%rNN_Coords(query, bufferSize=-1_int64)
             write(*, '(A)') '--- Testv040_FIND_NODES_COORDS_BAD_BUFFER ---'
             write(*, '(A)') 'expected stop 1, but rNN_Coords returned normally'
         end subroutine findNodesBadBuffer

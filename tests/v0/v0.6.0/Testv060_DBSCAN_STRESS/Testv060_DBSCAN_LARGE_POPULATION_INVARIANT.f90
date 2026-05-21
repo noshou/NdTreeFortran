@@ -19,7 +19,7 @@ program Testv060_DBSCAN_LARGE_POPULATION_INVARIANT
             coords = coords * 10.0_real64
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=5, radius=0.3_real64)
+            res = t%DBSCAN(minPts=5_int64, radius=0.3_real64)
 
             pop   = t%getPop()
             total = 0_int64

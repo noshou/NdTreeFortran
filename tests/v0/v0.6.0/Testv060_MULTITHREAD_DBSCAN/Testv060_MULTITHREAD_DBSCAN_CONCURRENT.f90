@@ -20,7 +20,7 @@ program Testv060_MULTITHREAD_DBSCAN_CONCURRENT
 
             !$OMP PARALLEL DEFAULT(NONE) SHARED(t, errors) NUM_THREADS(4) &
             !$OMP   PRIVATE(res, nClusters, noiseSize)
-            res       = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res       = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             nClusters = size(res) - 1
             noiseSize = size(res(size(res))%nodes)
             if (nClusters .ne. 2 .or. noiseSize .ne. 0) then

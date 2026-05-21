@@ -26,7 +26,7 @@ program Testv060_DBSCAN_1M_SINGLE_CLUSTER
             end do
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=0.002_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.002_real64)
 
             pop      = t%getPop()
             total    = 0_int64

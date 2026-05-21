@@ -17,7 +17,7 @@ program Testv060_DBSCAN_AFTER_RMV
             integer                         :: numRmv, i
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             if (size(res) - 1 .ne. 2) then
                 write(*, '(A)')    '--- Testv060_DBSCAN_AFTER_RMV ---'
                 write(*, '(A,I0)') 'expected 2 clusters before rmv, got: ', size(res) - 1
@@ -31,7 +31,7 @@ program Testv060_DBSCAN_AFTER_RMV
                 stop 1
             end if
 
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             pop   = t%getPop()
             total = 0_int64
             do i = 1, size(res)

@@ -17,7 +17,7 @@ program Testv060_DBSCAN_CHEBYSHEV
             integer                         :: nClusters, noiseSize
 
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=1.0_real64, metric='chebyshev')
+            res = t%DBSCAN(minPts=2_int64, radius=1.0_real64, metric='chebyshev')
 
             nClusters = size(res) - 1
             noiseSize = size(res(size(res))%nodes)

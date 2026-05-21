@@ -1,0 +1,6 @@
+add_kdtest(Testv071_DBSCAN_TWO_CLUSTERS)
+add_kdtest(Testv071_DBSCAN_SINGLE_CLUSTER)
+add_kdtest(Testv071_DBSCAN_THREE_CLUSTERS)
+add_kdtest(Testv071_DBSCAN_ALL_NOISE)
+add_kdtest(Testv071_DBSCAN_MANHATTAN)
+add_kdtest(Testv071_DBSCAN_CHEBYSHEV)

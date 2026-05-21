@@ -20,7 +20,7 @@ program Testv060_DBSCAN_REBUILD
 
             ! Phase 1: initial build -> 2 clusters
             call t%build(coords1)
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             if (size(res) - 1 .ne. 2) then
                 write(*, '(A)')    '--- Testv060_DBSCAN_REBUILD (phase 1) ---'
                 write(*, '(A,I0)') 'expected 2 clusters, got: ', size(res) - 1
@@ -34,7 +34,7 @@ program Testv060_DBSCAN_REBUILD
                 write(*, '(A,I0)') 'expected numRmv==6, got: ', numRmv
                 stop 1
             end if
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             if (size(res) .ne. 0) then
                 write(*, '(A)')    '--- Testv060_DBSCAN_REBUILD (phase 2 empty) ---'
                 write(*, '(A,I0)') 'expected size(res)==0 for empty tree, got: ', size(res)
@@ -43,7 +43,7 @@ program Testv060_DBSCAN_REBUILD
 
             ! Phase 3: add new nodes -> 1 cluster of 4
             call t%addNodes(coords2)
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             pop   = t%getPop()
             total = 0_int64
             do i = 1, size(res)

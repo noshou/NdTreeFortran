@@ -20,7 +20,7 @@ program Testv060_DBSCAN_IDEMPOTENT
 
             call t%build(coords)
 
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             nc1    = size(res) - 1
             ns1    = size(res(size(res))%nodes)
             total1 = 0_int64
@@ -28,7 +28,7 @@ program Testv060_DBSCAN_IDEMPOTENT
                 total1 = total1 + int(size(res(i)%nodes), int64)
             end do
 
-            res = t%DBSCAN(minPts=2, radius=0.5_real64)
+            res = t%DBSCAN(minPts=2_int64, radius=0.5_real64)
             nc2    = size(res) - 1
             ns2    = size(res(size(res))%nodes)
             total2 = 0_int64

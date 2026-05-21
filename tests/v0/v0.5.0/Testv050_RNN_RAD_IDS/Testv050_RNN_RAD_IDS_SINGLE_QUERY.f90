@@ -4,7 +4,7 @@ program Testv050_RNN_RAD_IDS_SINGLE_QUERY
     implicit none
     call rnnRadIdsSingleQuery()
     contains
-        !> Radius captures 3 nodes; ids set contains only the id of one —
+        !> Radius captures 3 nodes; ids set contains only the id of one 
         !! result bucket has exactly 1 node.
         subroutine rnnRadIdsSingleQuery()
             type(KdTree)                    :: t

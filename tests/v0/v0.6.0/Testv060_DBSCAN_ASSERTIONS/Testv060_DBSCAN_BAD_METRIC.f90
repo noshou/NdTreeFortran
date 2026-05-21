@@ -10,7 +10,7 @@ program Testv060_DBSCAN_BAD_METRIC
                 [0.0_real64, 0.0_real64, 1.0_real64, 0.0_real64, 0.0_real64, 1.0_real64], [2, 3])
             type(NdNodeBucket), allocatable :: res(:)
             call t%build(coords)
-            res = t%DBSCAN(minPts=2, radius=1.0_real64, metric='unknown')
+            res = t%DBSCAN(minPts=2_int64, radius=1.0_real64, metric='unknown')
             write(*, '(A)') '--- Testv060_DBSCAN_BAD_METRIC ---'
             write(*, '(A)') 'expected error stop for metric=''unknown'', but returned normally'
         end subroutine dbscanBadMetric

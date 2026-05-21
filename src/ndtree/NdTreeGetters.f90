@@ -40,9 +40,9 @@ submodule(NdTreeFortran) NdTreeGetters
         end procedure getAllNodeIds
 
         module procedure getAllNodes
-            type(NdNode), pointer  :: copy       
-            integer(int64)         :: i
-            logical                :: init
+            type(NdNode), pointer :: copy       
+            integer(int64)        :: i
+            logical               :: init
 
             call this%getInitState(init)
             if (.not. init) then 
@@ -57,8 +57,8 @@ submodule(NdTreeFortran) NdTreeGetters
         end procedure getAllNodes
 
         module procedure getAllCoords
-            integer(int64)         :: i
-            logical                :: init
+            integer(int64) :: i
+            logical        :: init
             
             call this%getInitState(init)
             if (.not. init) then 
