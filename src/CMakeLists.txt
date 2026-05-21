@@ -10,10 +10,11 @@ add_library(ndtreefortran
 	kdtree/KdTreeBuild.f90
 	kdtree/KdTreeUtils.f90
 	kdtree/KdTreeRnn.f90
-	kdtree/KdTreeModders.f90
+	kdtree/KdTreeAddNodes.f90
 	balltree/BallTreeBuild.f90
 	balltree/BallTreeUtils.f90
 	balltree/BallTreeRnn.f90
+	balltree/BallTreeAddNodes.f90
 	ndtree/search_modules/NdTreeRnn.f90
 	ndtree/search_modules/NdTreeLinScan.f90
 	ndtree/search_modules/NdTreeDBSCAN.f90

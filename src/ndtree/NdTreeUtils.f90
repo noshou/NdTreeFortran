@@ -12,26 +12,6 @@ submodule(NdTreeFortran) NdTreeUtils
             end if
         end procedure setRebuildRatio
 
-        module procedure rebuild
-            integer(int64), allocatable :: indices(:)
-            integer(int64)              :: i
-
-            ! sync pool_idx hints; reset structural arrays so buildSubtree starts clean
-            do i = 1_int64, this%pop
-                this%nodePool(i)%nodeId%pool_idx = i
-                if (allocated(this%nodePool(i)%children))  deallocate(this%nodePool(i)%children)
-                if (allocated(this%nodePool(i)%nodeParams)) deallocate(this%nodePool(i)%nodeParams)
-            end do
-
-            allocate(indices(this%pop))
-            indices = [(i, i=1_int64, this%pop)]
-            this%rootIdx = 0_int64
-
-            call this%buildSubtree(this%rootIdx, indices, 1_int64, this%pop, depth=0_int64)
-
-            this%modifications = 0_int64
-
-        end procedure rebuild
 
         module procedure isMember
             integer(int64) :: i, hint

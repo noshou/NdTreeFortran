@@ -103,7 +103,6 @@ module NdTreeFortran
             procedure                                  :: addNodes
             procedure                                  :: rmvNodes
             procedure(addNodesImpl), deferred, private :: addNodesImpl
-            procedure(rmvNodesImpl), deferred, private :: rmvNodesImpl
             !..........................................................!
 
             !...................................!
@@ -152,7 +151,6 @@ module NdTreeFortran
             procedure :: buildSubtree => buildSubtreeKDT
             procedure :: rNN          => rNN_KDT
             procedure :: printTree    => printKdTree
-            procedure :: rmvNodesImpl => rmvNodesKDT
             procedure :: addNodesImpl => addNodesKDT
             procedure :: saxs
             procedure :: getSplitAxis
@@ -168,7 +166,6 @@ module NdTreeFortran
         contains 
             procedure :: buildSubtree => buildSubtreeBLT
             procedure :: rNN          => rNN_BLT
-            procedure :: rmvNodesImpl => rmvNodesBLT
             procedure :: addNodesImpl => addNodesBLT
             procedure :: printTree    => printBallTree
             procedure :: getMetric    => getMetricBLT
@@ -243,33 +240,12 @@ module NdTreeFortran
         
 
         !> Tree specific implementation of addNodes, called after validation by NdTree
-        subroutine addNodesImpl(this, coordsList, dataList)
+        subroutine addNodesImpl(this, coordsList)
             import :: NodeId, NdTree, NdNode, NdNodePtr, real64, int64
-            class(NdTree),intent(inout)        :: this
-            real(real64), intent(in)           :: coordsList(:,:)
-            class(*),     intent(in), optional :: dataList(:)
+            class(NdTree),intent(inout) :: this
+            real(real64), intent(in)    :: coordsList(:,:)
         end subroutine addNodesImpl
 
-        !> Tree specific implementation of rmvNodes, called after validation by NdTree
-        function rmvNodesImpl( &
-            this,              &
-            coordsList,        &
-            radii,             &
-            ids,               &
-            epsilon,           &
-            metric,            &
-            bufferSize         &
-        ) result(numRmv)
-            import :: NodeId, NdTree, NdNode, NdNodePtr, real64
-            class(NdTree),    intent(inout)        :: this
-            real(real64),     intent(in), optional :: coordsList(:,:)
-            real(real64),     intent(in), optional :: radii(:)
-            type(NodeId),     intent(in), optional :: ids(:)
-            real(real64),     intent(in), optional :: epsilon
-            character(len=9), intent(in)           :: metric
-            integer,          intent(in)           :: bufferSize
-            integer                                :: numRmv
-        end function rmvNodesImpl
     end interface
 
     interface
@@ -558,14 +534,6 @@ module NdTreeFortran
             type(NdNode), pointer, intent(in) :: target
             logical                           :: res
         end function isMember
-
-        !> rebuilds a tree after node pool has been modified.
-        !!
-        !! must ensure that tree and node state
-        !! invariants are preserved BEFORE calling rebuild
-        module subroutine rebuild(this)
-            class(NdTree), intent(inout) :: this
-        end subroutine rebuild
         
         !> Overwrites rebuildRatio. Must be in (0, 1).
         !! Not thread-safe; do not call concurrently with addNodes().
@@ -599,6 +567,14 @@ module NdTreeFortran
             class(*),          intent(in), optional :: data(:)
             real(kind=real64), intent(in), optional :: rebuildRatio
         end subroutine build
+
+        !> Rebuilds a tree after node pool has been modified.
+        !!
+        !! must ensure that tree and node state
+        !! invariants are preserved BEFORE calling rebuild
+        module subroutine rebuild(this)
+            class(NdTree), intent(inout) :: this
+        end subroutine rebuild
 
         !=================================================================================!
 
@@ -1023,32 +999,12 @@ module NdTreeFortran
 
         !====================================================================================!
 
-        !================================== kdtree/KdTreeModders.f90  ==================================!
+        !================================== kdtree/KdTreeAddNodes.f90  ==================================!
 
-        module subroutine addNodesKDT(this, coordsList, dataList)
-            class(KdTree),intent(inout)        :: this
-            real(real64), intent(in)           :: coordsList(:,:)
-            class(*),     intent(in), optional :: dataList(:)
+        module subroutine addNodesKDT(this, coordsList)
+            class(KdTree),intent(inout) :: this
+            real(real64), intent(in)    :: coordsList(:,:)
         end subroutine addNodesKDT
-
-        module function rmvNodesKDT( &
-            this,                    &
-            coordsList,              &
-            radii,                   &
-            ids,                     &
-            epsilon,                 &
-            metric,                  &
-            bufferSize               &
-        ) result(numRmv)
-            class(KdTree),    intent(inout)        :: this
-            real(real64),     intent(in), optional :: coordsList(:,:)
-            real(real64),     intent(in), optional :: radii(:)
-            type(NodeId),     intent(in), optional :: ids(:)
-            real(real64),     intent(in), optional :: epsilon
-            character(len=9), intent(in)           :: metric
-            integer,          intent(in)           :: bufferSize
-            integer                                :: numRmv
-        end function rmvNodesKDT
         
         !===============================================================================================!
 
@@ -1166,33 +1122,10 @@ module NdTreeFortran
                 type(NdNodePtr),  allocatable, intent(inout) :: res(:)
                 character(len=*), intent(in)                 :: metric
         end subroutine rNN_BLT
-
-        ! TODO !
-
-        module subroutine addNodesBLT(this, coordsList, dataList)
-            class(BallTree), intent(inout)        :: this
-            real(real64),    intent(in)           :: coordsList(:,:)
-            class(*),        intent(in), optional :: dataList(:)
+        module subroutine addNodesBLT(this, coordsList)
+            class(BallTree), intent(inout) :: this
+            real(real64),    intent(in)    :: coordsList(:,:)
         end subroutine addNodesBLT
-
-        module function rmvNodesBLT( &
-            this,                    &
-            coordsList,              &
-            radii,                   &
-            ids,                     &
-            epsilon,                 &
-            metric,                  &
-            bufferSize               &
-        ) result(numRmv)
-            class(BallTree),  intent(inout)        :: this
-            real(real64),     intent(in), optional :: coordsList(:,:)
-            real(real64),     intent(in), optional :: radii(:)
-            type(NodeId),     intent(in), optional :: ids(:)
-            real(real64),     intent(in), optional :: epsilon
-            character(len=9), intent(in)           :: metric
-            integer,          intent(in)           :: bufferSize
-            integer                                :: numRmv
-        end function rmvNodesBLT
 
         module subroutine printBallTree(this, unit)
             class(BallTree), intent(in)           :: this
@@ -1200,16 +1133,4 @@ module NdTreeFortran
         end subroutine printBallTree
 
     end interface
-
-    contains 
-        ! scaffolding !
-        module procedure printBallTree 
-            return 
-        end procedure printBallTree
-        module procedure rmvNodesBLT
-            return
-        end procedure rmvNodesBLT
-        module procedure addNodesBLT
-        end procedure addNodesBLT
-
 end module NdTreeFortran

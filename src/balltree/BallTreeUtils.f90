@@ -1,7 +1,42 @@
 submodule(NdTreeFortran) BallTreeUtils
+    use iso_fortran_env, only: output_unit, int64, real64
     implicit none
     contains
-        
+
+        module procedure printBallTree
+            integer :: u
+            u = output_unit
+            if (present(unit)) u = unit
+            if (this%rootIdx .ne. 0_int64) then
+                call printBallNode(this%nodePool, this%rootIdx, 0_int64, u)
+            else
+                write(u, '(A)') '**empty tree**'
+            end if
+        end procedure printBallTree
+
+        recursive subroutine printBallNode(nodePool, idx, depth, u)
+            type(NdNode),   intent(in) :: nodePool(:)
+            integer(int64), intent(in) :: idx, depth
+            integer,        intent(in) :: u
+            integer                    :: i, d
+
+            do d = 1, int(depth)
+                write(u, '(A)', advance='no') '  '
+            end do
+            write(u, '(A,G0.4,A)', advance='no') '[r=', nodePool(idx)%nodeParams(1), '] ('
+            do i = 1, size(nodePool(idx)%coords)
+                if (i > 1) write(u, '(A)', advance='no') ', '
+                write(u, '(G0.4)', advance='no') nodePool(idx)%coords(i)
+            end do
+            write(u, '(A)') ')'
+
+            if (nodePool(idx)%children(1) .ne. 0_int64) &
+                call printBallNode(nodePool, nodePool(idx)%children(1), depth + 1_int64, u)
+            if (nodePool(idx)%children(2) .ne. 0_int64) &
+                call printBallNode(nodePool, nodePool(idx)%children(2), depth + 1_int64, u)
+        end subroutine printBallNode
+
+
         module procedure setMetricBLT
             logical :: isInit
             call this%getInitState(isInit)
