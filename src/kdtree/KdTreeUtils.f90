@@ -41,6 +41,8 @@ submodule(NdTreeFortran) KdTreePrint
         end procedure saxs
 
         module procedure getSplitAxis
+            if (.not. this%isMember(node)) &
+                error stop "getSplitAxis: node not a member of this tree"
             axis = int(node%nodeParams(1), int64)
         end procedure getSplitAxis
 

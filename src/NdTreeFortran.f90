@@ -19,6 +19,16 @@ module NdTreeFortran
     !> Default epsilon value for floating point comparisons
     real(real64),     parameter :: DEFAULT_EPSILON      = 1.0e-15_real64
 
+    !> A Quadtree label 
+    character(len=9), parameter :: QOT_QUT = 'QUADTREE'
+
+    !> An Octree label
+    character(len=9), parameter :: QOT_OCT = 'OCTREE'
+    
+    !> A QuOcTree which has not been initialized
+    character(len=9), parameter :: QOT_UND = 'UNDEFINED'
+
+
     !> 128-bit composite node identifier.
     !! node_id is stable for the lifetime of the node.
     !! pool_idx is a mutable hint to the node's current position in the pool;
@@ -79,8 +89,8 @@ module NdTreeFortran
     type :: NdNodeBucket
         type(NdNodePtr), allocatable :: nodes(:)
         contains
-            procedure         :: destroy => destroyNodeBucket
-            final             :: finalizerNodeBucket
+            procedure :: destroy => destroyNodeBucket
+            final     :: finalizerNodeBucket
     end type NdNodeBucket
 
     type, abstract :: NdTree
@@ -157,7 +167,7 @@ module NdTreeFortran
             procedure :: getSplitAxis
             final     :: finalizerKDT
     end type KdTree
-
+    
     !> A Ball Tree
     type, extends(NdTree) :: BallTree
 
@@ -174,6 +184,29 @@ module NdTreeFortran
             procedure :: getBallRadius  
             final     :: finalizerBLT
     end type BallTree
+
+    !> A quadtree/octree combined type
+    !!
+    !! Quadtree -> when coords(:,2)
+    !!
+    !! Octree  -> when coords(:,3)
+    !!
+    !! Error if coords do not match
+    type, extends(NdTree) :: QuOcTree
+        
+        !> tree type: 'QUADTREE', 'OCTREE', or 'UNDEFINED' if uninitialized
+        character(len=9), private :: type = QOT_UND 
+
+        contains 
+            procedure :: buildSubtree  => buildSubtreeQOT
+            procedure :: rNN           => rNN_QOT
+            procedure :: printTree     => printQuOcTree
+            procedure :: getBBoxCoords 
+            procedure :: getBBoxMeasure
+            procedure :: getType       => getTypeQOT
+            procedure :: addNodesImpl  => addNodesQOT
+            final     :: finalizerQOT
+    end type QuOcTree 
 
     abstract interface 
 
@@ -531,9 +564,9 @@ module NdTreeFortran
         !!
         !! @return true if a member, false if not
         module function isMember(this, target) result(res)
-            class(NdTree),         intent(in) :: this
-            type(NdNode), pointer, intent(in) :: target
-            logical                           :: res
+            class(NdTree), intent(in)    :: this
+            type(NdNode),  intent(inout) :: target
+            logical                      :: res
         end function isMember
         
         !> Overwrites rebuildRatio. Must be in (0, 1).
@@ -971,9 +1004,9 @@ module NdTreeFortran
         !! @param[in] node  a node from this tree's pool
         !! @return          split axis index (1-based, cycles 1..dim)
         module function getSplitAxis(this, node) result(axis)
-            class(KdTree), intent(in) :: this
-            type(NdNode),  intent(in) :: node
-            integer(int64)            :: axis
+            class(KdTree), intent(in)    :: this
+            type(NdNode),  intent(inout) :: node
+            integer(int64)               :: axis
         end function getSplitAxis
 
         !> Frees tree resources when a KdTree goes out of scope.
@@ -1010,8 +1043,8 @@ module NdTreeFortran
         !================================== kdtree/KdTreeAddNodes.f90  ==================================!
 
         module subroutine addNodesKDT(this, coordsList)
-            class(KdTree),intent(inout) :: this
-            real(real64), intent(in)    :: coordsList(:,:)
+            class(KdTree), intent(inout) :: this
+            real(real64),  intent(in)    :: coordsList(:,:)
         end subroutine addNodesKDT
         
         !===============================================================================================!
@@ -1080,6 +1113,8 @@ module NdTreeFortran
 
         !====================================================================================!
 
+        !========= balltree/BallTreeUtils.f90 =========!
+
         !> 
         !! @return this%metric or 'not init' if tree is not initialized
         module function getMetricBLT(this) result(metric)
@@ -1101,9 +1136,9 @@ module NdTreeFortran
         !! 
         !! @return the ball radius
         module function getBallRadius(this, node) result(radius)
-            class(BallTree), intent(in) :: this
-            type(NdNode),    intent(in) :: node
-            real(real64)                :: radius
+            class(BallTree), intent(in)    :: this
+            type(NdNode),    intent(inout) :: node
+            real(real64)                   :: radius
         end function getBallRadius
         
         !> Frees tree resources when a BallTree goes out of scope.
@@ -1111,6 +1146,7 @@ module NdTreeFortran
             type(BallTree), intent(inout) :: this
         end subroutine finalizerBLT
 
+        !========= balltree/BallTreeRnn.f90 =========!
         module subroutine rNN_BLT( &
             this,                  &
             target,                &
@@ -1130,6 +1166,8 @@ module NdTreeFortran
                 type(NdNodePtr),   intent(inout), allocatable :: res(:)
                 character(len=*),  intent(in)                 :: metric
         end subroutine rNN_BLT
+        
+        !========= balltree/BallTreeAddNodes.f90 =========!
         module subroutine addNodesBLT(this, coordsList)
             class(BallTree), intent(inout) :: this
             real(real64),    intent(in)    :: coordsList(:,:)
@@ -1140,5 +1178,83 @@ module NdTreeFortran
             integer,         intent(in), optional :: unit
         end subroutine printBallTree
 
+        recursive module subroutine buildSubtreeQOT( &
+            this,                                    &
+            rootIdx,                                 &
+            indices,                                 &
+            lowerIdx,                                &
+            upperIdx,                                &
+            depth                                    &
+        )
+            class(QuOcTree), intent(inout)        :: this
+            integer(int64),  intent(out)          :: rootIdx
+            integer(int64),  intent(inout)        :: indices(:)
+            integer(int64),  intent(in)           :: lowerIdx, upperIdx
+            integer(int64),  intent(in), optional :: depth
+        end subroutine buildSubtreeQOT
+
+        module subroutine finalizerQOT(this)
+            type(QuOcTree), intent(inout) :: this
+        end subroutine finalizerQOT
+        
+        module subroutine printQuOcTree(this, unit)
+            class(QuOcTree), intent(in)           :: this
+            integer,         intent(in), optional :: unit
+        end subroutine printQuOcTree
+
+        module subroutine addNodesQOT(this, coordsList)
+            class(QuOcTree), intent(inout) :: this
+            real(real64),    intent(in)    :: coordsList(:,:)
+        end subroutine addNodesQOT
+
+        module function getBBoxCoords(this, node) result(coords)
+            class(QuOcTree), intent(in)    :: this
+            type(NdNode),    intent(inout) :: node
+            real(real64),    allocatable   :: coords(:,:)
+        end function getBBoxCoords
+
+        module function getBBoxMeasure(this, node) result(measure)
+            class(QuOcTree), intent(in)    :: this
+            type(NdNode),    intent(inout) :: node
+            real(real64)                   :: measure
+        end function getBBoxMeasure
+        
+        module function getTypeQOT(this) result(type)
+            class(QuOcTree), intent(in) :: this
+            character(len=9)            :: type
+        end function getTypeQOT
+        module subroutine rNN_QOT( &
+            this,                  &
+            target,                &
+            currIdx,               &
+            nodePool,              &
+            radius,                &
+            res,                   &
+            arrSize,               &
+            metric                 &
+        )
+                class(QuOcTree),   intent(in)                 :: this
+                type(NdNode),      intent(in)                 :: target
+                integer(int64),    intent(in)                 :: currIdx
+                type(NdNode),      intent(in)                 :: nodePool(:)
+                real(kind=real64), intent(in)                 :: radius
+                integer(int64),    intent(inout)              :: arrSize
+                type(NdNodePtr),   intent(inout), allocatable :: res(:)
+                character(len=*),  intent(in)                 :: metric
+        end subroutine rNN_QOT
+
     end interface
+
+    ! scaffolding
+    contains 
+        module procedure printQuOcTree
+            return
+        end procedure printQuOcTree
+        module procedure rNN_QOT
+            return 
+        end procedure rNN_QOT
+        module procedure addNodesQOT
+            return 
+        end procedure addNodesQOT
+
 end module NdTreeFortran

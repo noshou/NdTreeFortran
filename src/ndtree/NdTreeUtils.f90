@@ -15,14 +15,7 @@ submodule(NdTreeFortran) NdTreeUtils
 
         module procedure isMember
             integer(int64) :: i, hint
-            
-            ! null pointer
-            if (.not. associated(target)) then
-                res = .false.
-                return
-            end if
-            
-            ! tree id mismatch
+
             if (this%treeId .ne. target%treeId) then
                 res = .false.
                 return
@@ -36,9 +29,8 @@ submodule(NdTreeFortran) NdTreeUtils
                     return
                 end if
             end if
-            
-            ! hint stale or slot reused; fall back to O(n) scan and
-            ! refresh the caller's pool_idx hint to the resolved slot
+
+            ! hint stale or slot reused; fall back to O(n) scan and refresh
             res = .false.
             do i = 1_int64, this%pop
                 if (this%nodePool(i)%nodeId%node_id .eq. target%nodeId%node_id) then
@@ -52,6 +44,7 @@ submodule(NdTreeFortran) NdTreeUtils
         module procedure assertMetric
 
             select type(this)
+                
                 class is (BallTree)
                     m = this%metric
                     if (present(metric)) then
@@ -62,6 +55,20 @@ submodule(NdTreeFortran) NdTreeUtils
                     end if
                 
                 class is (KdTree) 
+                    if (present(metric)) then 
+                        select case (metric)
+                            case ('euclidean'); m = 'euclidean'
+                            case ('manhattan'); m = 'manhattan'
+                            case ('chebyshev'); m = 'chebyshev'
+                            case default
+                                write (*,*) name, ": unkown metric: ", metric
+                                stop 1
+                        end select 
+                    else
+                        m = DEFAULT_METRIC
+                    end if
+                
+                class is (QuOcTree) 
                     if (present(metric)) then 
                         select case (metric)
                             case ('euclidean'); m = 'euclidean'

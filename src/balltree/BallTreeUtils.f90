@@ -69,14 +69,17 @@ submodule(NdTreeFortran) BallTreeUtils
         module procedure getBallRadius
             logical :: isInit
             call this%getInitState(isInit)
-            if (.not. isInit) then 
+            if (.not. isInit) then
                 error stop "getBallRadius: tree is not initialized (call build first?)"
-            else 
+            else if (.not. this%isMember(node)) then
+                error stop "getBallRadius: node not a member of tree"
+            else
                 radius = node%nodeParams(1)
             end if
         end procedure getBallRadius
         
         module procedure finalizerBLT
+            this%metric = DEFAULT_METRIC
             call this%destroy()
         end procedure finalizerBLT
 
