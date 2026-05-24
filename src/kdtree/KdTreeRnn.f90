@@ -19,21 +19,19 @@ submodule(NdTreeFortran) KdTreeRnn
             stack(1)  = currIdx
 
             do while (stackTop > 0_int64)
+
+                ! pop node
                 node     = stack(stackTop)
                 stackTop = stackTop - 1_int64
 
+                ! check if node is within search sphere
                 select case (metric)
-                    case ('euclidean')
-                        withinRadius = target%euclideanDist(nodePool(node)) .le. radius
-                    case ('manhattan')
-                        withinRadius = target%manhattanDist(nodePool(node)) .le. radius
-                    case ('chebyshev')
-                        withinRadius = target%chebyshevDist(nodePool(node)) .le. radius
-                    case default
-                        error stop "rNN_KDT: unknown metric"
+                    case ('euclidean'); withinRadius = target%euclideanDist(nodePool(node)) .le. radius
+                    case ('manhattan'); withinRadius = target%manhattanDist(nodePool(node)) .le. radius
+                    case ('chebyshev'); withinRadius = target%chebyshevDist(nodePool(node)) .le. radius
                 end select
                 
-                ! append to found nodes
+                ! append to found nodes if within search sphere
                 if (withinRadius) then
                     if (size(res) .eq. arrSize) then
                         allocate(tmp(2*size(res)))

@@ -4,7 +4,7 @@ submodule(NdTreeFortran) BallTreeRnn
         module procedure rNN_BLT
             integer(int64), allocatable  :: stack(:), stmp(:)
             integer(int64)               :: stackTop, stackSize, childIdx, i
-            real(kind=real64)            :: dst, childRad
+            real(kind=real64)            :: childRad
             type(NdNodePtr), allocatable :: tmp(:)
             type(NdNode)                 :: parent
             type(NdNode),    pointer     :: copy
@@ -23,14 +23,9 @@ submodule(NdTreeFortran) BallTreeRnn
                     stackTop = stackTop - 1_int64
 
                     select case (this%metric)
-                        case ('euclidean')
-                            withinRadius = target%euclideanDist(parent) .le. radius
-                        case ('manhattan')
-                            withinRadius = target%manhattanDist(parent) .le. radius
-                        case ('chebyshev')
-                            withinRadius = target%chebyshevDist(parent) .le. radius
-                        case default
-                            error stop "rNN_BLT: unknown metric"
+                        case ('euclidean'); withinRadius = target%euclideanDist(parent) .le. radius
+                        case ('manhattan'); withinRadius = target%manhattanDist(parent) .le. radius
+                        case ('chebyshev'); withinRadius = target%chebyshevDist(parent) .le. radius
                     end select
 
                     ! append to found nodes
@@ -56,25 +51,15 @@ submodule(NdTreeFortran) BallTreeRnn
                         call move_alloc(from=stmp, to=stack)
                     end if
 
-                    ! for each child node: 
+                    ! for each child node:
                     ! case 1: bounding sphere is entirely within search sphere; add all nodes in this subtree
-                    ! case 2: bounding sphere overlaps with search sphere; push the child to stack 
+                    ! case 2: bounding sphere overlaps with search sphere; push the child to stack
                     if (parent%children(1) .ne. 0_int64) then
                         childIdx = parent%children(1)
                         childRad = nodePool(childIdx)%nodeParams(1)
-                        select case (this%metric)
-                            case ('euclidean')
-                                dst = target%euclideanDist(nodePool(childIdx))
-                            case ('manhattan')
-                                dst = target%manhattanDist(nodePool(childIdx))
-                            case ('chebyshev')
-                                dst = target%chebyshevDist(nodePool(childIdx))
-                            case default
-                                error stop "rNN_BLT: unknown metric"
-                        end select
-                        if (dst + childRad .le. radius) then
+                        if (target%sphereMaxDist(nodePool(childIdx)%coords, childRad, this%metric) .le. radius) then
                             call addSubtree(nodePool, childIdx, res, arrSize)
-                        else if (dst - childRad .le. radius) then
+                        else if (target%sphereMinDist(nodePool(childIdx)%coords, childRad, this%metric) .le. radius) then
                             stackTop        = stackTop + 1_int64
                             stack(stackTop) = childIdx
                         end if
@@ -82,19 +67,9 @@ submodule(NdTreeFortran) BallTreeRnn
                     if (parent%children(2) .ne. 0_int64) then
                         childIdx = parent%children(2)
                         childRad = nodePool(childIdx)%nodeParams(1)
-                        select case (this%metric)
-                            case ('euclidean')
-                                dst = target%euclideanDist(nodePool(childIdx))
-                            case ('manhattan')
-                                dst = target%manhattanDist(nodePool(childIdx))
-                            case ('chebyshev')
-                                dst = target%chebyshevDist(nodePool(childIdx))
-                            case default
-                                error stop "rNN_BLT: unknown metric"
-                        end select
-                        if (dst + childRad .le. radius) then
+                        if (target%sphereMaxDist(nodePool(childIdx)%coords, childRad, this%metric) .le. radius) then
                             call addSubtree(nodePool, childIdx, res, arrSize)
-                        else if (dst - childRad .le. radius) then
+                        else if (target%sphereMinDist(nodePool(childIdx)%coords, childRad, this%metric) .le. radius) then
                             stackTop        = stackTop + 1_int64
                             stack(stackTop) = childIdx
                         end if

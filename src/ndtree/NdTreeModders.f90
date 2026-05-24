@@ -5,8 +5,8 @@ submodule(NdTreeFortran) NdTreeModders
 
         module procedure addNodes
 
-            logical         :: isInit, hasData, rootHasData, hasRoot
-            integer(int64) :: dataListSize, numNodeToAdd, dim, tid, pop, i
+            logical               :: isInit, hasData, rootHasData, hasRoot
+            integer(int64)        :: dataListSize, numNodeToAdd, dim, tid, pop, i
             type(NdNode), pointer :: nodePoolTmp(:)
             
             call this%associatedRoot(hasRoot)

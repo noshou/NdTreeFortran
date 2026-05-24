@@ -1,57 +1,9 @@
 submodule(NdTreeFortran) NdTreeRnn
     implicit none
     contains
-        
-        !> Asserts that a user input for RNN is correct; error stops if it fails
-        subroutine assert_rNN(t, coords, epsilon, metric, name, bufferSize, ids)
-            class(NdTree),     intent(in)           :: t
-            real(real64),      intent(in)           :: coords(:,:)
-            character(len=*),  intent(in)           :: name
-            character(len=*),  intent(in), optional :: metric
-            real(real64),      intent(in), optional :: epsilon
-            type(NodeId),      intent(in), optional :: ids(:)
-            integer(int64),    intent(in), optional :: bufferSize
-
-            if (.not. t%initialized) then
-                write(*, '(*(A))') name, ': tree is not initialized (call build first)'
-                stop 1
-            end if
-            if (t%dim .ne. size(coords, 1)) then
-                write(*, '(*(A))') name, ': dimension mismatch!'
-                stop 1
-            end if
-            if (present(epsilon)) then
-                if (epsilon .lt. 0.0_real64) then
-                    write(*, '(*(A))') name, ': epsilon must be >= 0!'
-                    stop 1
-                end if
-            end if
-            if (present(ids)) then
-                if (size(ids) .ne. size(coords, 2)) then
-                    write(*, '(*(A))') name, ': number of ids must match number of coordinates'
-                    stop 1
-                end if
-            end if
-            if (present(metric)) then
-                select case (metric)
-                    case ('euclidean')
-                    case ('manhattan')
-                    case ('chebyshev')
-                    case default
-                        write(*, '(*(A))') name, ": unknown metric: '", metric, "'"
-                        stop 1
-                end select
-            end if
-            if (present(bufferSize)) then
-                if (bufferSize .le. 0) then
-                    write(*, '(*(A))') name, ': invalid buffer size!'
-                    stop 1
-                end if
-            end if
-        end subroutine assert_rNN
 
         module procedure rNN_Node
-            
+
             integer(int64)               :: is
             integer(int64)               :: arrSize, i, j
             character(len=9)             :: m
@@ -67,30 +19,14 @@ submodule(NdTreeFortran) NdTreeRnn
                 error stop "rNN_Node: target is not a member of tree"
             end if
 
-            if(.not. present(bufferSize)) then
+            if (.not. present(bufferSize)) then
                 is = DEFAULT_BUFFER_SIZE
             else
-                if (bufferSize .le. 0) then
-                    error stop "rNN_Node: invalid bufferSize"
-                else
-                    is = bufferSize
-                end if
+                if (bufferSize .le. 0) error stop "rNN_Node: invalid bufferSize"
+                is = bufferSize
             end if
 
-            if (.not. present(metric)) then
-                m = DEFAULT_METRIC
-            else
-                select case (metric)
-                case ('euclidean')
-                    m = 'euclidean'
-                case ('manhattan')
-                    m = 'manhattan'
-                case ('chebyshev')
-                    m = 'chebyshev'
-                case default
-                    error stop "rNN_Node: unknown metric"
-                end select
-            end if
+            m = this%assertMetric('rNN_Node', metric)
 
             arrSize = 0
             allocate(res(is))
@@ -153,17 +89,14 @@ submodule(NdTreeFortran) NdTreeRnn
                 error stop "rNN_Centroid: negative radius"
             end if
 
-            if(.not. present(bufferSize)) then
+            if (.not. present(bufferSize)) then
                 is = DEFAULT_BUFFER_SIZE
             else
-                if (bufferSize .le. 0) then
-                    error stop "rNN_Centroid: invalid bufferSize"
-                else
-                    is = bufferSize
-                end if
+                if (bufferSize .le. 0) error stop "rNN_Centroid: invalid bufferSize"
+                is = bufferSize
             end if
 
-            m = this%assertMetric('rNN', metric)
+            m = this%assertMetric('rNN_Centroid', metric)
 
             arrSize = 0
             allocate(res(is))
@@ -197,35 +130,30 @@ submodule(NdTreeFortran) NdTreeRnn
         end procedure rNN_Centroid
 
         module procedure rNN_Coords
+
             integer(int64)               :: bs
             integer(int64)               :: i
             real(real64)                 :: e
+            character(len=9)             :: m
             type(NdNodePtr), allocatable :: nptrs(:)
 
-            call assert_rNN(  &
-                this,         &
-                coords,       &
-                epsilon,      &
-                metric,       &
-                'rNN_Coords', &
-                bufferSize    &
-            )
-
+            if (.not. this%initialized) &
+                error stop "rNN_Coords: tree is not initialized (call build first)"
+            if (this%dim .ne. size(coords, 1)) &
+                error stop "rNN_Coords: dimension mismatch"
             if (present(epsilon)) then
-                e = epsilon
-            else
-                e = DEFAULT_EPSILON
+                if (epsilon .lt. 0.0_real64) error stop "rNN_Coords: epsilon must be >= 0"
             end if
-
             if (present(bufferSize)) then
-                bs = bufferSize
-            else
-                bs = DEFAULT_BUFFER_SIZE
+                if (bufferSize .le. 0) error stop "rNN_Coords: invalid buffer size"
             end if
+            m = this%assertMetric('rNN_Coords', metric)
+
+            e  = DEFAULT_EPSILON;        if (present(epsilon))    e  = epsilon
+            bs = DEFAULT_BUFFER_SIZE;    if (present(bufferSize)) bs = bufferSize
 
             allocate(res(size(coords, 2)))
 
-            ! empty tree: return empty buckets without descending
             if (this%pop .eq. 0_int64) then
                 do i = 1, size(coords, 2)
                     allocate(res(i)%nodes(0))
@@ -234,47 +162,39 @@ submodule(NdTreeFortran) NdTreeRnn
             end if
 
             do i = 1, size(coords, 2)
-                nptrs = this%rNN_Centroid(  &
-                    coords(:,i),            &
-                    e,                      &
-                    bs,                     &
-                    metric                  &
-                )
+                nptrs = this%rNN_Centroid(coords(:,i), e, bs, m)
                 allocate(res(i)%nodes, source=nptrs)
             end do
+
         end procedure rNN_Coords
 
         module procedure rNN_Ids
+
             integer(int64)               :: bs
             integer(int64)               :: i, j, currSize
             real(real64)                 :: e
+            character(len=9)             :: m
             type(NdNodePtr), allocatable :: nptrsTmp(:)
 
-            call assert_rNN(  &
-                this,         &
-                coords,       &
-                epsilon,      &
-                metric,       &
-                'rNN_Ids',    &
-                bufferSize,   &
-                ids           &
-            )
-
+            if (.not. this%initialized) &
+                error stop "rNN_Ids: tree is not initialized (call build first)"
+            if (this%dim .ne. size(coords, 1)) &
+                error stop "rNN_Ids: dimension mismatch"
             if (present(epsilon)) then
-                e = epsilon
-            else
-                e = DEFAULT_EPSILON
+                if (epsilon .lt. 0.0_real64) error stop "rNN_Ids: epsilon must be >= 0"
             end if
-
+            if (size(ids) .ne. size(coords, 2)) &
+                error stop "rNN_Ids: number of ids must match number of coordinates"
             if (present(bufferSize)) then
-                bs = bufferSize
-            else
-                bs = DEFAULT_BUFFER_SIZE
+                if (bufferSize .le. 0) error stop "rNN_Ids: invalid buffer size"
             end if
+            m = this%assertMetric('rNN_Ids', metric)
 
-            res = this%rNN_Coords(coords, metric, e, bs)
+            e  = DEFAULT_EPSILON;        if (present(epsilon))    e  = epsilon
+            bs = DEFAULT_BUFFER_SIZE;    if (present(bufferSize)) bs = bufferSize
 
-            ! filter res by id
+            res = this%rNN_Coords(coords, m, e, bs)
+
             do i = 1, size(coords, 2)
                 currSize = 0
                 allocate(nptrsTmp(size(res(i)%nodes)))
@@ -295,64 +215,57 @@ submodule(NdTreeFortran) NdTreeRnn
 
             integer(int64)               :: bs
             integer(int64)               :: i
+            character(len=9)             :: m
             type(NdNodePtr), allocatable :: nptrs(:)
 
-            ! assertion checks
-            call assert_rNN(this, coords=coords, metric=metric, name='rNN_Rad', bufferSize=bufferSize)
-            if (size(radii) .ne. size(coords, 2)) then 
+            if (.not. this%initialized) &
+                error stop "rNN_Rad: tree is not initialized (call build first)"
+            if (this%dim .ne. size(coords, 1)) &
+                error stop "rNN_Rad: dimension mismatch"
+            if (size(radii) .ne. size(coords, 2)) &
                 error stop "rNN_Rad: number of radii must match number of coordinates"
-            end if
-
             if (present(bufferSize)) then
-                bs = bufferSize
-            else
-                bs = DEFAULT_BUFFER_SIZE
+                if (bufferSize .le. 0) error stop "rNN_Rad: invalid buffer size"
             end if
+            m = this%assertMetric('rNN_Rad', metric)
+
+            bs = DEFAULT_BUFFER_SIZE;    if (present(bufferSize)) bs = bufferSize
 
             allocate(res(size(coords, 2)))
-            if (this%pop .eq. 0_int64) then 
+            if (this%pop .eq. 0_int64) then
                 do i = 1, size(coords, 2)
                     allocate(res(i)%nodes(0))
                 end do
                 return
             end if
-            
+
             do i = 1, size(coords, 2)
-                nptrs = this%rNN_Centroid(  &
-                    coords(:,i),            &
-                    radii(i),               &
-                    bs,                     &
-                    metric                  &
-                )
+                nptrs = this%rNN_Centroid(coords(:,i), radii(i), bs, m)
                 allocate(res(i)%nodes, source=nptrs)
             end do
+
         end procedure rNN_Rad
 
         module procedure rNN_RadIds
+
             integer(int64)                  :: i, j, k, nMatch
+            character(len=9)                :: m
             type(NdNodeBucket), allocatable :: resTmp(:)
             type(NdNodePtr),    allocatable :: nptrTmp(:)
-            ! assertion checks
-            call assert_rNN(          &
-                this,                 &
-                coords=coords,        &
-                metric=metric,        &
-                name='rNN_RadIds',    &
-                bufferSize=bufferSize &
-            )
 
-            if (size(radii) .ne. size(coords, 2)) then
+            if (.not. this%initialized) &
+                error stop "rNN_RadIds: tree is not initialized (call build first)"
+            if (this%dim .ne. size(coords, 1)) &
+                error stop "rNN_RadIds: dimension mismatch"
+            if (size(radii) .ne. size(coords, 2)) &
                 error stop "rNN_RadIds: number of radii must match number of coordinates"
-            else if (size(ids) .eq. 0) then
+            if (size(ids) .eq. 0) &
                 error stop "rNN_RadIds: ids must not be empty"
-            end if
-            
-            ! spatial query: find all nodes within radii(i) of coords(:,i)
-            resTmp = this%rNN_Rad(coords, radii, metric, bufferSize)
+            m = this%assertMetric('rNN_RadIds', metric)
+
+            resTmp = this%rNN_Rad(coords, radii, m, bufferSize)
             allocate(res(size(resTmp)))
             do i = 1, size(resTmp)
-                
-                ! filter bucket i: keep only nodes whose id appears in ids
                 allocate(nptrTmp(size(resTmp(i)%nodes)))
                 nMatch = 0
                 do j = 1, size(resTmp(i)%nodes)
@@ -364,13 +277,11 @@ submodule(NdTreeFortran) NdTreeRnn
                         end if
                     end do
                 end do
-                
-                ! pack matched nodes into result bucket; empty if none matched
                 allocate(res(i)%nodes(nMatch))
-                if (nMatch .gt. 0) then 
-                    res(i)%nodes = nptrTmp(1:nMatch)
-                end if
+                if (nMatch .gt. 0) res(i)%nodes = nptrTmp(1:nMatch)
                 deallocate(nptrTmp)
             end do
+
         end procedure rNN_RadIds
+
 end submodule NdTreeRnn

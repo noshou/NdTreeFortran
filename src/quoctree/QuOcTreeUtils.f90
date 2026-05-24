@@ -72,5 +72,52 @@ submodule(NdTreeFortran) QuOcTree
                 end select 
             end if 
         end procedure getBBoxMeasure
+    
+        module procedure printQuOcTree
+            integer :: u
+            u = output_unit
+            if (present(unit)) u = unit
+            if (this%rootIdx .ne. 0_int64) then
+                call printQOTNode(this%nodePool, this%rootIdx, 0_int64, u)
+            else
+                write(u, '(A)') '**empty tree**'
+            end if
+        end procedure printQuOcTree
+
+        recursive subroutine printQOTNode(nodePool, idx, depth, u)
+            type(NdNode),   intent(in) :: nodePool(:)
+            integer(int64), intent(in) :: idx, depth
+            integer,        intent(in) :: u
+            integer(int64)             :: i, d, c, dim
+
+            dim = size(nodePool(idx)%coords, kind=int64)
+
+            do d = 1_int64, depth
+                write(u, '(A)', advance='no') '  '
+            end do
+
+            ! print bbox lo..hi per axis; stride dim through nodeParams to collect all values per axis
+            write(u, '(A)', advance='no') '[bbox=('
+            do i = 1_int64, dim
+                if (i > 1_int64) write(u, '(A)', advance='no') ', '
+                write(u, '(G0.4,A,G0.4)', advance='no') &
+                    minval(nodePool(idx)%nodeParams(i::int(dim))), &
+                    '..', &
+                    maxval(nodePool(idx)%nodeParams(i::int(dim)))
+            end do
+            write(u, '(A)', advance='no') ')] ('
+
+            ! print coords
+            do i = 1_int64, dim
+                if (i > 1_int64) write(u, '(A)', advance='no') ', '
+                write(u, '(G0.4)', advance='no') nodePool(idx)%coords(i)
+            end do
+            write(u, '(A)') ')'
+
+            do c = 1_int64, size(nodePool(idx)%children, kind=int64)
+                if (nodePool(idx)%children(c) .ne. 0_int64) &
+                    call printQOTNode(nodePool, nodePool(idx)%children(c), depth + 1_int64, u)
+            end do
+        end subroutine printQOTNode
 
 end submodule QuOcTree

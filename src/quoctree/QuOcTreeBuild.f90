@@ -2,8 +2,8 @@ submodule(NdTreeFortran) QuOcTreeBuild
     implicit none
     contains 
         module procedure buildSubtreeQOT
-            real(real64)    :: randomNumber, xMin, xMax, yMin, yMax, zMin, zMax, xMid, yMid, zMid
-            integer(int64)  :: pivotIdx, i, tmp, pivot, sw, se, nw, swd, swu, sed, seu, nwd, nwu, ned 
+            real(real64)   :: randomNumber, xMin, xMax, yMin, yMax, zMin, zMax
+            integer(int64) :: pivotIdx, i, tmp, sw, se, nw, swd, swu, sed, seu, nwd, nwu, ned 
 
             ! assertion checks
             if (this%type .eq. QOT_UND) then 
@@ -24,7 +24,9 @@ submodule(NdTreeFortran) QuOcTreeBuild
 
                 ! get coordinates of bounding box
                 select case (this%type)
-                    case (QOT_QUT)
+                    
+                ! Quadtree -> four extrema
+                case (QOT_QUT)
                         xMin = this%nodePool(indices(lowerIdx))%coords(1)
                         xMax = this%nodePool(indices(lowerIdx))%coords(1)
                         yMin = this%nodePool(indices(lowerIdx))%coords(2)
@@ -43,6 +45,8 @@ submodule(NdTreeFortran) QuOcTreeBuild
                                 yMax = this%nodePool(indices(i))%coords(2)
                             end if
                         end do
+                    
+                    ! Octree -> six extrema 
                     case (QOT_OCT)
                         xMin = this%nodePool(indices(lowerIdx))%coords(1)
                         xMax = this%nodePool(indices(lowerIdx))%coords(1)
@@ -70,7 +74,8 @@ submodule(NdTreeFortran) QuOcTreeBuild
                                 zMax = this%nodePool(indices(i))%coords(3)
                             end if
                         end do
-                end select
+                        
+                    end select
 
                 ! get root of this tree, stash root at end so the partition doesn't touch it
                 call random_number(randomNumber)
@@ -81,15 +86,31 @@ submodule(NdTreeFortran) QuOcTreeBuild
                 rootIdx  = indices(upperIdx)
 
                 ! allocate children; 4 for quadtree, 8 for octree
-                ! nodeParams are flattened array of bounding box coordinates;
-                ! BBox in a QuadTree is a 2D box, so in total there are 8 individual coordinates
-                ! BBox in an OcTree is a 3D box, so in total there are 24 individual coordinates
+                ! nodeParams: flattened corners of the bounding box, dim values per corner
+                !
+                ! Quadtree (8 values, 4 corners):
+                !   (1,2)=(xMin,yMin)  (3,4)=(xMin,yMax)
+                !   (5,6)=(xMax,yMax)  (7,8)=(xMax,yMin)
+                !   lo = nodeParams(1:2),  hi = nodeParams(5:6)
+                !
+                ! Octree (24 values, 8 corners):
+                !   ( 1, 2, 3)=(xMin,yMin,zMin)  ( 4, 5, 6)=(xMax,yMin,zMin)
+                !   ( 7, 8, 9)=(xMin,yMax,zMin)  (10,11,12)=(xMax,yMax,zMin)
+                !   (13,14,15)=(xMin,yMin,zMax)  (16,17,18)=(xMax,yMin,zMax)
+                !   (19,20,21)=(xMin,yMax,zMax)  (22,23,24)=(xMax,yMax,zMax)
+                !   lo = nodeParams(1:3),  hi = nodeParams(22:24)
                 select case (this%type)
                     
+                    ! BBox in a QuadTree is a 2D box, so in total there are 
+                    ! 4 children/corners and 8 values in nodeParams
                     case (QOT_QUT)
+
+                        ! initialize root
                         allocate(this%nodePool(rootIdx)%children(4))
                         allocate(this%nodePool(rootIdx)%nodeParams(8))
-                        
+                        this%nodePool(rootIdx)%children(:) = 0_int64
+                        this%nodePool(rootIdx)%treeId      = this%treeId
+
                         ! corner 1
                         this%nodePool(rootIdx)%nodeParams(1) = xMin
                         this%nodePool(rootIdx)%nodeParams(2) = yMin
@@ -105,11 +126,17 @@ submodule(NdTreeFortran) QuOcTreeBuild
                         ! corner 4 
                         this%nodePool(rootIdx)%nodeParams(7) = xMax
                         this%nodePool(rootIdx)%nodeParams(8) = yMin 
-                        
+                    
+                    ! BBox in an OcTree is a 3D box, so in total there are 
+                    ! 8 children/corners and 24 values in nodeParams
                     case (QOT_OCT)
+                        
+                        ! initialize root
                         allocate(this%nodePool(rootIdx)%children(8))
                         allocate(this%nodePool(rootIdx)%nodeParams(24))
-
+                        this%nodePool(rootIdx)%children(:) = 0_int64
+                        this%nodePool(rootIdx)%treeId      = this%treeId
+                        
                         ! corner 1
                         this%nodePool(rootIdx)%nodeParams(1)  = xMin
                         this%nodePool(rootIdx)%nodeParams(2)  = yMin
@@ -151,29 +178,21 @@ submodule(NdTreeFortran) QuOcTreeBuild
                         this%nodePool(rootIdx)%nodeParams(24) = zMax
 
                 end select
-                this%nodePool(rootIdx)%children(:) = 0_int64
-                this%nodePool(rootIdx)%treeId      = this%treeId
-
-                
-                ! calculate midpoint of x,y,z coordinates
-                xMid = (xMin + xMax) / 2_real64
-                yMid = (yMin + yMax) / 2_real64
-                if (this%dim .eq. 3) zMid = (zMin + zMax) / 2_real64
 
                 ! partition indices, recurse on children
                 select case (this%type)
                 
                     case (QOT_QUT)
-                        call partitionQuadrants( &
-                            this%nodePool,       &
-                            xMid,                &
-                            yMid,                &
-                            indices,             &
-                            lowerIdx,            &
-                            upperIdx,            &
-                            sw,                  &
-                            se,                  &
-                            nw                   &
+                        call partitionQuadrants(  &
+                            this%nodePool,        &
+                            (xMin+xMax)/2_real64, &
+                            (yMin+yMax)/2_real64, &
+                            indices,              &
+                            lowerIdx,             &
+                            upperIdx,             &
+                            sw,                   &
+                            se,                   &
+                            nw                    &
                         )
                         call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx,   sw)
                         call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, sw+1_int64, se)
@@ -181,21 +200,21 @@ submodule(NdTreeFortran) QuOcTreeBuild
                         call this%buildSubtree(this%nodePool(rootIdx)%children(4), indices, nw+1_int64, upperIdx-1_int64)
 
                     case (QOT_OCT)
-                        call partitionOctants( &
-                            this%nodePool,     &
-                            xMid,              &
-                            yMid,              &
-                            zMid,              &
-                            indices,           &
-                            lowerIdx,          &
-                            upperIdx,          &
-                            swd,               &
-                            swu,               &
-                            sed,               &
-                            seu,               &
-                            nwd,               &
-                            nwu,               &
-                            ned                &
+                        call partitionOctants(    &
+                            this%nodePool,        &
+                            (xMin+xMax)/2_real64, &
+                            (yMin+yMax)/2_real64, &
+                            (zMin+zMax)/2_real64, &
+                            indices,              &
+                            lowerIdx,             &
+                            upperIdx,             &
+                            swd,                  &
+                            swu,                  &
+                            sed,                  &
+                            seu,                  &
+                            nwd,                  &
+                            nwu,                  &
+                            ned                   &
                         )
                         call this%buildSubtree(this%nodePool(rootIdx)%children(1), indices, lowerIdx,    swd)
                         call this%buildSubtree(this%nodePool(rootIdx)%children(2), indices, swd+1_int64, swu)
@@ -224,7 +243,18 @@ submodule(NdTreeFortran) QuOcTreeBuild
         !!
         !! partition: [South-West|South-East|North-West|North-East]
         !!
-        !! bounds:    [lowerIdx..sw|sw+1..se|se+1..ne|ne+1..upperIdx-1]
+        !! bounds:    [lowerIdx..sw|sw+1..se|se+1..ne|ne+1..rootIdx-1]
+        !!
+        !! @param[in]    nodePool the tree's node pool
+        !! @param[in]    xMid     midpoint along x axis
+        !! @param[in]    yMid     midpoint along y axis
+        !! @param[inout] indices  index permutation array; rearranged in-place
+        !! @param[in]    lowerIdx lower bound of the slice to partition (inclusive)
+        !! @param[in]    upperIdx upper bound of the slice (exclusive);
+        !!                        caller must ensure that the root is at this index
+        !! @param[inout] sw       last index of the South-West partition
+        !! @param[inout] se       last index of the South-East partition
+        !! @param[inout] nw       last index of the North-East partition
         subroutine partitionQuadrants( &
             nodePool,                 &    
             xMid,                     & 
@@ -282,7 +312,7 @@ submodule(NdTreeFortran) QuOcTreeBuild
         end subroutine partitionQuadrants
 
 
-        !> for an octree, each root has 8 subtrees split into quadrants:
+        !> for an octree, each root has 8 subtrees split into octants:
         !!
         !!   1. North-East-Up:   (x ≥ xMid) && (y ≥ yMid) && (z ≥ zMid)
         !!
@@ -305,6 +335,22 @@ submodule(NdTreeFortran) QuOcTreeBuild
         !! bounds:    
         !! 
         !! [lowerIdx..swd | swd+1..swu | swu+1..sed | sed+1..seu | seu+1..nwd | nwd+1..nwu | nwu+1..ned | ned+1..upperIdx-1]
+        !!
+        !! @param[in]    nodePool the tree's node pool
+        !! @param[in]    xMid     midpoint along x axis
+        !! @param[in]    yMid     midpoint along y axis
+        !! @param[in]    zMid     midpoint along z axis
+        !! @param[inout] indices  index permutation array; rearranged in-place
+        !! @param[in]    lowerIdx lower bound of the slice to partition (inclusive)
+        !! @param[in]    upperIdx upper bound of the slice (exclusive);
+        !!                        caller must ensure that the root is at this index
+        !! @param[inout] swd      last index of the South-West-Down  partition
+        !! @param[inout] swu      last index of the South-West-Up    partition
+        !! @param[inout] sed      last index of the South-East-Down  partition
+        !! @param[inout] seu      last index of the South-East-Up    partition
+        !! @param[inout] nwd      last index of the North-West-Down  partition
+        !! @param[inout] nwu      last index of the North-West-Up    partition
+        !! @param[inout] ned      last index of the North-East-Down  partition
         subroutine partitionOctants( &
             nodePool,                &
             xMid,                    &

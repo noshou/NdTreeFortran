@@ -17,6 +17,7 @@ add_library(ndtreefortran
 	balltree/BallTreeAddNodes.f90
 	quoctree/QuOcTreeBuild.f90
 	quoctree/QuOcTreeUtils.f90
+	quoctree/QuOcTreeRnn.f90
 	ndtree/search_modules/NdTreeRnn.f90
 	ndtree/search_modules/NdTreeLinScan.f90
 	ndtree/search_modules/NdTreeDBSCAN.f90

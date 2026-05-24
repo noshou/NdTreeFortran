@@ -17,7 +17,7 @@ module NdTreeFortran
     character(len=9), parameter :: DEFAULT_METRIC      = 'euclidean'
     
     !> Default epsilon value for floating point comparisons
-    real(real64),     parameter :: DEFAULT_EPSILON      = 1.0e-15_real64
+    real(real64),     parameter :: DEFAULT_EPSILON     = 1.0e-15_real64
 
     !> A Quadtree label 
     character(len=9), parameter :: QOT_QUT = 'QUADTREE'
@@ -63,12 +63,16 @@ module NdTreeFortran
 
             !..............................!
             !...... search functions ......!
-            procedure :: chebyshevDist 
+            procedure :: chebyshevDist
             procedure :: chebyshevDistPoint
             procedure :: euclideanDist
             procedure :: euclideanDistPoint
             procedure :: manhattanDist
             procedure :: manhattanDistPoint
+            procedure :: bboxMinDist
+            procedure :: bboxMaxDist
+            procedure :: sphereMinDist
+            procedure :: sphereMaxDist
             !..............................!
 
             procedure :: printNode
@@ -96,12 +100,12 @@ module NdTreeFortran
     type, abstract :: NdTree
         private 
         integer(int64)        :: dim = 0_int64, pop = 0_int64, TreeId = 0_int64
-        integer(int64)        :: currNodeId = 0_int64        !> Id of the most recently dispatched node
-        logical               :: initialized = .false.       !> true iff tree%build() is called successfully
-        type(NdNode), pointer :: nodePool(:) => null()       !> pool of allocated nodes
-        integer(int64)        :: rootIdx = 0_int64           !> index into nodePool for the root; 0 = empty
-        integer(int64)        :: modifications = 0_int64     !> total number of insertions on tree (removals always trigger rebuild)
-        real(real64)          :: rebuildRatio = 0.25_real64  !> if modifications > rebuildRatio * pop, trigger rebuild 
+        integer(int64)        :: currNodeId = 0_int64       !> Id of the most recently dispatched node
+        logical               :: initialized = .false.      !> true iff tree%build() is called successfully
+        type(NdNode), pointer :: nodePool(:) => null()      !> pool of allocated nodes
+        integer(int64)        :: rootIdx = 0_int64          !> index into nodePool for the root; 0 = empty
+        integer(int64)        :: modifications = 0_int64    !> total number of insertions on tree (removals always trigger rebuild)
+        real(real64)          :: rebuildRatio = 0.25_real64 !> if modifications > rebuildRatio * pop, trigger rebuild 
 
         contains
 
@@ -192,6 +196,10 @@ module NdTreeFortran
     !! Octree  -> when coords(:,3)
     !!
     !! Error if coords do not match
+    !!
+    !! Each node stores its subtree's axis-aligned bounding box in nodeParams.
+    !! Quadtree nodes store 4 corners (8 values); octree nodes store 8 corners (24 values).
+    !! Use getBBoxCoords(node) to retrieve them; do not read nodeParams directly.
     type, extends(NdTree) :: QuOcTree
         
         !> tree type: 'QUADTREE', 'OCTREE', or 'UNDEFINED' if uninitialized
@@ -201,7 +209,7 @@ module NdTreeFortran
             procedure :: buildSubtree  => buildSubtreeQOT
             procedure :: rNN           => rNN_QOT
             procedure :: printTree     => printQuOcTree
-            procedure :: getBBoxCoords 
+            procedure :: getBBoxCoords
             procedure :: getBBoxMeasure
             procedure :: getType       => getTypeQOT
             procedure :: addNodesImpl  => addNodesQOT
@@ -377,6 +385,63 @@ module NdTreeFortran
             real(real64), allocatable, intent(in) :: point(:)
             real(kind=real64)                     :: dist
         end function manhattanDistPoint
+
+        !> Minimum distance from this node's coordinates to an axis-aligned bounding box.
+        !! Zero if the point lies inside the box.
+        !! Used as the prune condition in rNN: if minDist > radius, skip the subtree.
+        !! @param[in] lo      minimum-coordinate corner of the bbox (length dim)
+        !! @param[in] hi      maximum-coordinate corner of the bbox (length dim)
+        !! @param[in] metric  'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        module function bboxMinDist(this, lo, hi, metric) result(minDist)
+            class(NdNode),    intent(in)           :: this
+            real(real64),     intent(in)           :: lo(:), hi(:)
+            character(len=*), intent(in), optional :: metric
+            real(real64)                           :: minDist
+        end function bboxMinDist
+
+        !> Maximum distance from this node's coordinates to an axis-aligned bounding box.
+        !! Equal to the distance to the farthest corner of the box.
+        !! Used as the bulk-add condition: if maxDist <= radius, the entire subtree
+        !! lies inside the search sphere.
+        !! @param[in] lo      minimum-coordinate corner of the bbox (length dim)
+        !! @param[in] hi      maximum-coordinate corner of the bbox (length dim)
+        !! @param[in] metric  'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        module function bboxMaxDist(this, lo, hi, metric) result(maxDist)
+            class(NdNode),    intent(in)           :: this
+            real(real64),     intent(in)           :: lo(:), hi(:)
+            character(len=*), intent(in), optional :: metric
+            real(real64)                           :: maxDist
+        end function bboxMaxDist
+
+        !> Minimum distance from this node's coordinates to a hypersphere.
+        !! Zero if the point lies inside the sphere.
+        !! Used as the prune condition in rNN: if sphereMinDist > radius, skip the subtree.
+        !! @param[in] center  centre of the sphere (length dim)
+        !! @param[in] radius  radius of the sphere
+        !! @param[in] metric  'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        module function sphereMinDist(this, center, radius, metric) result(minDist)
+            class(NdNode),    intent(in)           :: this
+            real(real64),     intent(in)           :: center(:)
+            real(real64),     intent(in)           :: radius
+            character(len=*), intent(in), optional :: metric
+            real(real64)                           :: minDist
+        end function sphereMinDist
+
+        !> Maximum distance from this node's coordinates to a hypersphere.
+        !! Equal to the distance to the far side of the sphere along the line through
+        !! the query point and the centre.
+        !! Used as the bulk-add condition: if sphereMaxDist <= radius, the entire subtree
+        !! lies inside the search sphere.
+        !! @param[in] center  centre of the sphere (length dim)
+        !! @param[in] radius  radius of the sphere
+        !! @param[in] metric  'euclidean', 'manhattan', 'chebyshev'; default DEFAULT_METRIC
+        module function sphereMaxDist(this, center, radius, metric) result(maxDist)
+            class(NdNode),    intent(in)           :: this
+            real(real64),     intent(in)           :: center(:)
+            real(real64),     intent(in)           :: radius
+            character(len=*), intent(in), optional :: metric
+            real(real64)                           :: maxDist
+        end function sphereMaxDist
 
         !===========================================================!
 
@@ -1113,10 +1178,20 @@ module NdTreeFortran
 
         !====================================================================================!
 
-        !========= balltree/BallTreeUtils.f90 =========!
+        !================= balltree/BallTreeUtils.f90 =================!
+        
+        !> Returns the radius of the radius of this node
+        !! @param[in] node the node to check
+        !! 
+        !! @return the ball radius
+        module function getBallRadius(this, node) result(radius)
+            class(BallTree), intent(in)    :: this
+            type(NdNode),    intent(inout) :: node
+            real(real64)                   :: radius
+        end function getBallRadius
 
         !> 
-        !! @return this%metric or 'not init' if tree is not initialized
+        !! @return this%metric or error if tree is not initialized
         module function getMetricBLT(this) result(metric)
             class(BallTree), intent(in) :: this
             character(len=9)            :: metric
@@ -1131,22 +1206,28 @@ module NdTreeFortran
             character(len=9), intent(in), optional :: metric
         end subroutine setMetricBLT
 
-        !> Returns the radius of the radius of this node
-        !! @param[in] node the node to check
-        !! 
-        !! @return the ball radius
-        module function getBallRadius(this, node) result(radius)
-            class(BallTree), intent(in)    :: this
-            type(NdNode),    intent(inout) :: node
-            real(real64)                   :: radius
-        end function getBallRadius
         
         !> Frees tree resources when a BallTree goes out of scope.
         module subroutine finalizerBLT(this)
             type(BallTree), intent(inout) :: this
         end subroutine finalizerBLT
 
+        !==============================================================!
+
         !========= balltree/BallTreeRnn.f90 =========!
+
+        !> Radius Nearest Neighbour search. Walks the ball-tree from currIdx,
+        !! appending matching nodes to res and pruning subtrees whose
+        !! bounding ball cannot intersect the search sphere:
+        !! dist(target, ball_centre) - ball_radius > search_radius.
+        !! @param[in]    target   the query node (used as the search centre)
+        !! @param[in]    currIdx  nodePool index of the current subtree root;
+        !!                        0 terminates recursion
+        !! @param[in]    nodePool the tree's node pool
+        !! @param[in]    radius   search radius
+        !! @param[inout] res      result buffer; doubles in size when full
+        !! @param[inout] arrSize  number of results written into res so far
+        !! @param[in]    metric   fixed at construction; must match this%metric
         module subroutine rNN_BLT( &
             this,                  &
             target,                &
@@ -1178,6 +1259,24 @@ module NdTreeFortran
             integer,         intent(in), optional :: unit
         end subroutine printBallTree
 
+
+        !> Bounding Box coordinates in nodeParams
+        !!
+        !! Quadtree (8 values, 4 corners):
+        !!   - corner 1: nodeParams(1:2) = (xMin,yMin)  
+        !!   - corner 2: nodeParams(3:4) = (xMin,yMax)
+        !!   - corner 3: nodeParams(5:6) = (xMax,yMax)  
+        !!   - corner 4: nodeParams(7:8) = (xMax,yMin)
+        !!
+        !! Octree (24 values, 8 corners):
+        !!  - corner 1: nodeParams(1:3)   = (xMin,yMin,zMin)  
+        !!  - corner 2: nodeParams(4:6)   = (xMax,yMin,zMin)
+        !!  - corner 3: nodeParams(7:9)   = (xMin,yMax,zMin)  
+        !!  - corner 4: nodeParams(10:12) = (xMax,yMax,zMin)
+        !!  - corner 5: nodeParams(13:15) = (xMin,yMin,zMax)
+        !!  - corner 6: nodeParams(16:18) = (xMax,yMin,zMax)
+        !!  - corner 7: nodeParams(19:21) = (xMin,yMax,zMax)  
+        !!  - corner 8: nodeParams(22:24) = (xMax,yMax,zMax)
         recursive module subroutine buildSubtreeQOT( &
             this,                                    &
             rootIdx,                                 &
@@ -1246,15 +1345,9 @@ module NdTreeFortran
     end interface
 
     ! scaffolding
-    contains 
-        module procedure printQuOcTree
-            return
-        end procedure printQuOcTree
-        module procedure rNN_QOT
-            return 
-        end procedure rNN_QOT
+    contains
         module procedure addNodesQOT
-            return 
+            return
         end procedure addNodesQOT
 
 end module NdTreeFortran
